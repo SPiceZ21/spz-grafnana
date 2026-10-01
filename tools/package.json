@@ -1,0 +1,12 @@
+{
+  "name": "spz-server-health-monitor",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "monitor": "node tools/server-monitor.mjs",
+    "track-map": "node tools/track-map-server.mjs"
+  },
+  "dependencies": {
+    "mysql2": "^3.14.0"
+  }
+}

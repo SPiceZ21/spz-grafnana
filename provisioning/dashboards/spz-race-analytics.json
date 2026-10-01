@@ -2,33 +2,1603 @@
   "id": null,
   "uid": "spz-race-analytics",
   "title": "SPZ Race Analytics",
-  "tags": ["spz", "racing", "analytics"],
+  "tags": [
+    "spz",
+    "racing",
+    "analytics"
+  ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 5,
   "refresh": "1m",
-  "time": { "from": "now-30d", "to": "now" },
-  "templating": { "list": [
-    { "name": "track", "label": "Track", "type": "query", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "query": "SELECT DISTINCT track FROM race_sessions ORDER BY track", "refresh": 1, "includeAll": true, "allValue": ".*", "current": { "selected": true, "text": "All", "value": "$__all" } },
-    { "name": "class", "label": "Class", "type": "query", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "query": "SELECT DISTINCT car_class FROM race_sessions ORDER BY car_class", "refresh": 1, "includeAll": true, "allValue": ".*", "current": { "selected": true, "text": "All", "value": "$__all" } }
-  ] },
-  "annotations": { "list": [] },
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "track",
+        "label": "Track",
+        "type": "query",
+        "datasource": {
+          "type": "mysql",
+          "uid": "spz-mysql"
+        },
+        "query": "SELECT DISTINCT track FROM race_sessions ORDER BY track",
+        "refresh": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "class",
+        "label": "Class",
+        "type": "query",
+        "datasource": {
+          "type": "mysql",
+          "uid": "spz-mysql"
+        },
+        "query": "SELECT DISTINCT car_class FROM race_sessions ORDER BY car_class",
+        "refresh": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "track_type",
+        "label": "Track Type",
+        "type": "query",
+        "datasource": {
+          "type": "mysql",
+          "uid": "spz-mysql"
+        },
+        "query": "SELECT DISTINCT track_type FROM race_sessions ORDER BY track_type",
+        "refresh": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "player",
+        "label": "Player",
+        "type": "query",
+        "datasource": {
+          "type": "mysql",
+          "uid": "spz-mysql"
+        },
+        "query": "SELECT DISTINCT p.username AS __text, p.id AS __value FROM players p JOIN race_results rr ON rr.player_id=p.id ORDER BY __text",
+        "refresh": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All players",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
   "panels": [
-    { "id": 1, "type": "stat", "title": "Races", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 }, "targets": [{ "rawSql": "SELECT COUNT(*) AS value FROM race_sessions WHERE $__timeFilter(created_at) AND track REGEXP '${track:regex}' AND car_class REGEXP '${class:regex}'", "format": "table", "refId": "A" }], "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "palette-classic" } }, "overrides": [] }, "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "auto" } },
-    { "id": 2, "type": "stat", "title": "Unique Drivers", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 }, "targets": [{ "rawSql": "SELECT COUNT(DISTINCT rr.player_id) AS value FROM race_results rr JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}'", "format": "table", "refId": "A" }], "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }, "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "colorMode": "value", "graphMode": "area", "orientation": "auto" } },
-    { "id": 3, "type": "stat", "title": "Average Race Duration", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 }, "targets": [{ "rawSql": "SELECT AVG(duration_ms) AS value FROM race_sessions WHERE $__timeFilter(created_at) AND track REGEXP '${track:regex}' AND car_class REGEXP '${class:regex}'", "format": "table", "refId": "A" }], "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] }, "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "colorMode": "value", "graphMode": "area", "orientation": "auto" } },
-    { "id": 4, "type": "stat", "title": "DNF Rate", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 }, "targets": [{ "rawSql": "SELECT 100*SUM(rr.dnf=1)/NULLIF(COUNT(*),0) AS value FROM race_results rr JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}'", "format": "table", "refId": "A" }], "fieldConfig": { "defaults": { "unit": "percent", "decimals": 1 }, "overrides": [] }, "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "colorMode": "value", "graphMode": "area", "orientation": "auto" } },
-    { "id": 5, "type": "timeseries", "title": "Race Volume", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 }, "targets": [{ "rawSql": "SELECT $__timeGroup(created_at,'1d') AS time, COUNT(*) AS races FROM race_sessions WHERE $__timeFilter(created_at) AND track REGEXP '${track:regex}' AND car_class REGEXP '${class:regex}' GROUP BY time ORDER BY time", "format": "time_series", "refId": "A" }], "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "bars", "fillOpacity": 45, "lineWidth": 1 } }, "overrides": [] }, "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } } },
-    { "id": 6, "type": "barchart", "title": "Most Raced Tracks", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 }, "targets": [{ "rawSql": "SELECT track, COUNT(*) AS races FROM race_sessions WHERE $__timeFilter(created_at) AND track REGEXP '${track:regex}' AND car_class REGEXP '${class:regex}' GROUP BY track ORDER BY races DESC LIMIT 15", "format": "table", "refId": "A" }], "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }, "options": { "orientation": "horizontal", "xTickLabelRotation": 0, "xTickLabelSpacing": 0, "showValue": "auto", "stacking": "none", "legend": { "showLegend": false } } },
-    { "id": 7, "type": "piechart", "title": "Race Class Mix", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 0, "y": 12, "w": 8, "h": 8 }, "targets": [{ "rawSql": "SELECT car_class AS class, COUNT(*) AS races FROM race_sessions WHERE $__timeFilter(created_at) AND track REGEXP '${track:regex}' AND car_class REGEXP '${class:regex}' GROUP BY car_class", "format": "table", "refId": "A" }], "fieldConfig": { "defaults": {}, "overrides": [] }, "options": { "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" }, "pieType": "donut", "displayLabels": ["name", "percent"], "legend": { "displayMode": "list", "placement": "right", "showLegend": true } } },
-    { "id": 8, "type": "table", "title": "Track Records", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 8, "y": 12, "w": 16, "h": 8 }, "targets": [{ "rawSql": "SELECT tr.track AS Track, tr.car_class AS Class, p.username AS Driver, tr.best_time AS BestTimeMs, tr.best_lap AS BestLapMs, tr.set_at AS SetAt FROM track_records tr JOIN players p ON p.id=tr.player_id WHERE tr.track REGEXP '${track:regex}' ORDER BY tr.best_time ASC LIMIT 100", "format": "table", "refId": "A" }], "fieldConfig": { "defaults": { "custom": { "align": "auto", "displayMode": "auto" } }, "overrides": [] }, "options": { "showHeader": true, "sortBy": [{ "displayName": "BestTimeMs", "desc": false }] } },
-    { "id": 9, "type": "table", "title": "Recent Race History", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 0, "y": 20, "w": 12, "h": 9 }, "targets": [{ "rawSql": "SELECT rs.created_at AS Time, rs.track AS Track, rs.track_type AS Type, rs.car_class AS Class, rs.laps AS Laps, rs.player_count AS Starters, ROUND(rs.duration_ms/1000,1) AS DurationSeconds FROM race_sessions rs WHERE $__timeFilter(rs.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' ORDER BY rs.created_at DESC LIMIT 100", "format": "table", "refId": "A" }], "fieldConfig": { "defaults": { "custom": { "align": "auto", "displayMode": "auto" } }, "overrides": [] }, "options": { "showHeader": true } },
-    { "id": 10, "type": "table", "title": "Recent Results", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 12, "y": 20, "w": 12, "h": 9 }, "targets": [{ "rawSql": "SELECT rr.created_at AS Time, p.username AS Driver, rs.track AS Track, rr.position AS Position, ROUND(rr.finish_time/1000,2) AS FinishSeconds, ROUND(rr.best_lap/1000,2) AS BestLapSeconds, rr.dnf AS DNF, rr.dnf_reason AS DNFReason FROM race_results rr JOIN players p ON p.id=rr.player_id JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' ORDER BY rr.created_at DESC LIMIT 100", "format": "table", "refId": "A" }], "fieldConfig": { "defaults": { "custom": { "align": "auto", "displayMode": "auto" } }, "overrides": [] }, "options": { "showHeader": true } },
-    { "id": 11, "type": "timeseries", "title": "Poll Vote Counts", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 0, "y": 29, "w": 12, "h": 8 }, "targets": [{ "rawSql": "SELECT $__timeGroup(pr.ended_at,'1d') AS time, CONCAT(po.phase, ': ', po.option_key) AS metric, SUM(po.vote_count) AS votes FROM race_poll_runs pr JOIN race_poll_options po ON po.poll_id=pr.poll_id AND po.attempt=pr.attempt WHERE $__timeFilter(pr.ended_at) GROUP BY time, metric ORDER BY time", "format": "time_series", "refId": "A" }], "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 10 } }, "overrides": [] }, "options": { "legend": { "displayMode": "table", "placement": "right" }, "tooltip": { "mode": "multi" } } },
-    { "id": 12, "type": "stat", "title": "Poll Reroll Rate", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 12, "y": 29, "w": 4, "h": 8 }, "targets": [{ "rawSql": "SELECT 100*SUM(rerolled=1)/NULLIF(COUNT(*),0) AS value FROM race_poll_runs WHERE $__timeFilter(ended_at)", "format": "table", "refId": "A" }], "fieldConfig": { "defaults": { "unit": "percent", "decimals": 1 }, "overrides": [] }, "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "colorMode": "value", "graphMode": "area", "orientation": "auto" } },
-    { "id": 13, "type": "stat", "title": "Average Ballot Participation", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 16, "y": 29, "w": 4, "h": 8 }, "targets": [{ "rawSql": "SELECT 100*AVG(voter_count/NULLIF(eligible_count,0)) AS value FROM race_poll_runs WHERE $__timeFilter(ended_at) AND rerolled=0", "format": "table", "refId": "A" }], "fieldConfig": { "defaults": { "unit": "percent", "decimals": 1 }, "overrides": [] }, "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "colorMode": "value", "graphMode": "area", "orientation": "auto" } },
-    { "id": 14, "type": "text", "title": "Explore Track Routes", "gridPos": { "x": 20, "y": 29, "w": 4, "h": 8 }, "options": { "mode": "html", "content": "<h2>Track Map Explorer</h2><p>Inspect circuit and sprint checkpoint routes in the same overhead XY view as the race poll preview.</p><p><a href=\"http://localhost:8090\" target=\"_blank\">Open route map ↗</a></p>" } },
-    { "id": 15, "type": "timeseries", "title": "Cop Chase Votes", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 0, "y": 37, "w": 12, "h": 8 }, "targets": [{ "rawSql": "SELECT $__timeGroup(ended_at,'1d') AS time, SUM(cop_chase_yes) AS YesVotes, SUM(cop_chase_no) AS NoVotes FROM race_poll_runs WHERE $__timeFilter(ended_at) AND rerolled=0 GROUP BY time ORDER BY time", "format": "time_series", "refId": "A" }], "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "bars", "stacking": { "mode": "normal", "group": "A" } } }, "overrides": [] }, "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } } },
-    { "id": 16, "type": "table", "title": "Recent Poll Outcomes", "datasource": { "type": "mysql", "uid": "spz-mysql" }, "gridPos": { "x": 12, "y": 37, "w": 12, "h": 8 }, "targets": [{ "rawSql": "SELECT ended_at AS Time, race_type AS Type, eligible_count AS Eligible, voter_count AS Voters, track_winner AS Track, vehicle_winner AS Vehicle, traffic_winner AS Traffic, cop_chase AS Cops, rerolled AS Rerolled FROM race_poll_runs WHERE $__timeFilter(ended_at) AND rerolled=0 ORDER BY ended_at DESC LIMIT 100", "format": "table", "refId": "A" }], "fieldConfig": { "defaults": { "custom": { "align": "auto", "displayMode": "auto" } }, "overrides": [] }, "options": { "showHeader": true } }
+    {
+      "id": 33,
+      "type": "row",
+      "title": "OVERVIEW · server race activity and headline metrics",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 41,
+      "type": "row",
+      "title": "FIVEM SERVER HEALTH · reachability, uptime and outages",
+      "gridPos": { "x": 0, "y": 138, "w": 24, "h": 1 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 42,
+      "type": "stat",
+      "title": "FiveM Endpoint · current status",
+      "description": "Most recent TCP reachability check for the configured FiveM server endpoint.",
+      "datasource": { "type": "mysql", "uid": "spz-health" },
+      "gridPos": { "x": 0, "y": 139, "w": 5, "h": 4 },
+      "targets": [{ "rawSql": "SELECT checked_at AS time, is_up AS value FROM server_health_checks ORDER BY checked_at DESC LIMIT 1", "format": "time_series", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short", "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }], "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "area", "justifyMode": "center" }
+    },
+    {
+      "id": 43,
+      "type": "stat",
+      "title": "Availability · last 24h",
+      "description": "Share of 30-second probes that reached the configured TCP endpoint during the past 24 hours.",
+      "datasource": { "type": "mysql", "uid": "spz-health" },
+      "gridPos": { "x": 5, "y": 139, "w": 5, "h": 4 },
+      "targets": [{ "rawSql": "SELECT 100.0 * AVG(is_up) AS value FROM server_health_checks WHERE checked_at >= UTC_TIMESTAMP() - INTERVAL 24 HOUR", "format": "table", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "decimals": 2, "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "orange", "value": 95 }, { "color": "green", "value": 99 }] } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "center" }
+    },
+    {
+      "id": 44,
+      "type": "stat",
+      "title": "Downtime · last 24h",
+      "description": "Estimated unreachable time based on consecutive failed probes. A single failed interval is approximately the configured poll interval.",
+      "datasource": { "type": "mysql", "uid": "spz-health" },
+      "gridPos": { "x": 10, "y": 139, "w": 5, "h": 4 },
+      "targets": [{ "rawSql": "SELECT COALESCE(SUM(CASE WHEN is_up=0 THEN LEAST(interval_seconds, GREATEST(0, TIMESTAMPDIFF(SECOND, checked_at, COALESCE(LEAD(checked_at) OVER (ORDER BY checked_at), UTC_TIMESTAMP(3))))) ELSE 0 END), 0) AS value FROM server_health_checks WHERE checked_at >= UTC_TIMESTAMP() - INTERVAL 24 HOUR", "format": "table", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 0 }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "center" }
+    },
+    {
+      "id": 45,
+      "type": "stat",
+      "title": "Latest Response Time",
+      "description": "TCP connect latency of the most recent successful health probe.",
+      "datasource": { "type": "mysql", "uid": "spz-health" },
+      "gridPos": { "x": 15, "y": 139, "w": 5, "h": 4 },
+      "targets": [{ "rawSql": "SELECT checked_at AS time, latency_ms AS value FROM server_health_checks WHERE is_up=1 ORDER BY checked_at DESC LIMIT 1", "format": "time_series", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "ms", "decimals": 0 }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "center" }
+    },
+    {
+      "id": 48,
+      "type": "stat",
+      "title": "Players Online",
+      "description": "Player count most recently reported by FiveM's /dynamic.json endpoint. The trend below also shows server capacity when published.",
+      "datasource": { "type": "mysql", "uid": "spz-health" },
+      "gridPos": { "x": 20, "y": 139, "w": 4, "h": 4 },
+      "targets": [{ "rawSql": "SELECT checked_at AS time, players_online AS value FROM server_health_checks WHERE is_up=1 ORDER BY checked_at DESC LIMIT 1", "format": "time_series", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0, "color": { "mode": "palette-classic" } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "value", "colorMode": "value", "graphMode": "area", "justifyMode": "center" }
+    },
+    {
+      "id": 46,
+      "type": "timeseries",
+      "title": "Reachability & Response Time",
+      "description": "Availability steps and successful TCP probe latency over time. TCP reachability does not assert that a player can complete a FiveM handshake.",
+      "datasource": { "type": "mysql", "uid": "spz-health" },
+      "gridPos": { "x": 0, "y": 143, "w": 12, "h": 8 },
+      "targets": [
+        { "rawSql": "SELECT checked_at AS time, is_up AS value FROM server_health_checks WHERE $__timeFilter(checked_at) ORDER BY checked_at", "format": "time_series", "refId": "A", "alias": "reachable (1=up, 0=down)" },
+        { "rawSql": "SELECT checked_at AS time, latency_ms AS value FROM server_health_checks WHERE $__timeFilter(checked_at) AND is_up=1 ORDER BY checked_at", "format": "time_series", "refId": "B", "alias": "TCP latency (ms)" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "lineWidth": 2, "fillOpacity": 15, "showPoints": "never", "spanNulls": false } }, "overrides": [{ "matcher": { "id": "byName", "options": "TCP latency (ms)" }, "properties": [{ "id": "unit", "value": "ms" }, { "id": "custom.axisPlacement", "value": "right" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] }] },
+      "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["mean", "max"] } }
+    },
+    {
+      "id": 47,
+      "type": "table",
+      "title": "Recent Outages & Failed Checks",
+      "description": "Latest failed TCP health checks, including probe time and connection error.",
+      "datasource": { "type": "mysql", "uid": "spz-health" },
+      "gridPos": { "x": 0, "y": 151, "w": 24, "h": 8 },
+      "targets": [{ "rawSql": "SELECT checked_at AS 'Checked at (UTC)', error_text AS 'Failure reason' FROM server_health_checks WHERE $__timeFilter(checked_at) AND is_up=0 ORDER BY checked_at DESC LIMIT 100", "format": "table", "refId": "A" }],
+      "fieldConfig": { "defaults": { "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": false } }, "overrides": [] },
+      "options": { "showHeader": true, "cellHeight": "sm", "footer": { "show": false } }
+    },
+    {
+      "id": 49,
+      "type": "timeseries",
+      "title": "Players Online vs Capacity",
+      "description": "Player count and published capacity from the FiveM /dynamic.json endpoint.",
+      "datasource": { "type": "mysql", "uid": "spz-health" },
+      "gridPos": { "x": 12, "y": 143, "w": 12, "h": 8 },
+      "targets": [
+        { "rawSql": "SELECT checked_at AS time, players_online AS value FROM server_health_checks WHERE $__timeFilter(checked_at) AND is_up=1 ORDER BY checked_at", "format": "time_series", "refId": "A", "alias": "players online" },
+        { "rawSql": "SELECT checked_at AS time, max_players AS value FROM server_health_checks WHERE $__timeFilter(checked_at) AND is_up=1 ORDER BY checked_at", "format": "time_series", "refId": "B", "alias": "server capacity" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0, "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 12, "showPoints": "never", "spanNulls": false } }, "overrides": [] },
+      "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["lastNotNull", "max"] } }
+    },
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Races",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT COUNT(*) AS value FROM race_sessions WHERE $__timeFilter(created_at) AND track REGEXP '${track:regex}' AND car_class REGEXP '${class:regex}' AND track_type REGEXP '${track_type:regex}'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Unique Drivers",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 1,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT COUNT(DISTINCT rr.player_id) AS value FROM race_results rr JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Average Race Duration",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT AVG(duration_ms) AS value FROM race_sessions WHERE $__timeFilter(created_at) AND track REGEXP '${track:regex}' AND car_class REGEXP '${class:regex}' AND track_type REGEXP '${track_type:regex}'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "DNF Rate",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 1,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT 100*SUM(rr.dnf=1)/NULLIF(COUNT(*),0) AS value FROM race_results rr JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}'",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 34,
+      "type": "row",
+      "title": "RACE ACTIVITY · participation, tracks, classes and recent results",
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Race Volume",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT $__timeGroup(created_at,'1d') AS time, COUNT(*) AS races FROM race_sessions WHERE $__timeFilter(created_at) AND track REGEXP '${track:regex}' AND car_class REGEXP '${class:regex}' AND track_type REGEXP '${track_type:regex}' GROUP BY time ORDER BY time",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 45,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "barchart",
+      "title": "Most Raced Tracks",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT track, COUNT(*) AS races FROM race_sessions WHERE $__timeFilter(created_at) AND track REGEXP '${track:regex}' AND car_class REGEXP '${class:regex}' AND track_type REGEXP '${track_type:regex}' GROUP BY track ORDER BY races DESC LIMIT 15",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": {
+          "showLegend": false
+        }
+      }
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "Race Starters vs Finishers",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT $__timeGroup(rs.created_at,'1d') AS time, SUM(rs.player_count) AS Starters, SUM(COALESCE(r.finishers,0)) AS Finishers FROM race_sessions rs LEFT JOIN (SELECT race_id, SUM(CASE WHEN dnf=0 THEN 1 ELSE 0 END) AS finishers FROM race_results GROUP BY race_id) r ON r.race_id=rs.race_id WHERE $__timeFilter(rs.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' GROUP BY time ORDER BY time",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 12
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "Daily Active Racers",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 14,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT $__timeGroup(rr.created_at,'1d') AS time, COUNT(DISTINCT rr.player_id) AS racers FROM race_results rr JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' GROUP BY time ORDER BY time",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 45
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "piechart",
+      "title": "Race Class Mix",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT car_class AS class, COUNT(*) AS races FROM race_sessions WHERE $__timeFilter(created_at) AND track REGEXP '${track:regex}' AND car_class REGEXP '${class:regex}' AND track_type REGEXP '${track_type:regex}' GROUP BY car_class",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "pieType": "donut",
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
+        "legend": {
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "barchart",
+      "title": "Finishing Position Distribution",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 22,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT CASE WHEN dnf=1 THEN 'DNF' WHEN position>10 THEN 'P11+' ELSE CONCAT('P',position) END AS Result, COUNT(*) AS Drivers FROM race_results rr JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' GROUP BY Result ORDER BY MIN(position)",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "barchart",
+      "title": "DNF Reasons",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 22,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT COALESCE(NULLIF(rr.dnf_reason,''),'Unspecified') AS Reason, COUNT(*) AS DNFs FROM race_results rr JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rr.dnf=1 AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' GROUP BY Reason ORDER BY DNFs DESC LIMIT 12",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "table",
+      "title": "Recent Race History",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 30,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT rs.created_at AS Time, rs.track AS Track, rs.track_type AS Type, rs.car_class AS Class, rs.laps AS Laps, rs.player_count AS Starters, ROUND(rs.duration_ms/1000,1) AS DurationSeconds FROM race_sessions rs WHERE $__timeFilter(rs.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' ORDER BY rs.created_at DESC LIMIT 100",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Recent Results",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 30,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT rr.created_at AS Time, p.username AS Driver, rs.track AS Track, rr.position AS Position, ROUND(rr.finish_time/1000,2) AS FinishSeconds, ROUND(rr.best_lap/1000,2) AS BestLapSeconds, rr.dnf AS DNF, rr.dnf_reason AS DNFReason FROM race_results rr JOIN players p ON p.id=rr.player_id JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' ORDER BY rr.created_at DESC LIMIT 100",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 35,
+      "type": "row",
+      "title": "TRACK VISUALIZATION · GTA V route layouts",
+      "gridPos": {
+        "x": 0,
+        "y": 39,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 14,
+      "type": "geomap",
+      "title": "SPZ Track Routes · GTA V map",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 18
+      },
+      "options": {
+        "view": {
+          "allLayers": true,
+          "id": "fit",
+          "lat": 11.9,
+          "lon": -97.2,
+          "zoom": 3
+        },
+        "basemap": {
+          "type": "xyz",
+          "name": "GTA V map",
+          "config": {
+            "url": "https://s.rsg.sc/sc/images/games/GTAV/map/game/{z}/{x}/{y}.jpg",
+            "attribution": "Map tiles © Rockstar Games",
+            "maxZoom": 8
+          }
+        },
+        "controls": {
+          "showZoom": true,
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showScale": false,
+          "showMeasure": false,
+          "showDebug": false
+        },
+        "layers": [
+          {
+            "type": "geojson",
+            "name": "SPZ circuit & sprint routes",
+            "tooltip": true,
+            "opacity": 0.92,
+            "config": {
+              "src": "http://localhost:8090/tracks.geojson",
+              "rules": [],
+              "style": {
+                "color": {
+                  "fixed": "#ff712e"
+                },
+                "opacity": 0.9,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "fixed": 2,
+                  "max": 8,
+                  "min": 1
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "textConfig": {
+                  "fontSize": 11,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              }
+            }
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        }
+      },
+      "description": "Circuit and sprint layouts over Rockstar GTA V map tiles. Use the route explorer link for per-track search and selection.",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [],
+      "links": [
+        {
+          "title": "Open interactive track explorer",
+          "url": "http://localhost:8090/",
+          "targetBlank": true
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "type": "row",
+      "title": "TRACK RECORDS & PACE",
+      "gridPos": {
+        "x": 0,
+        "y": 58,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Track Records",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 59,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT tr.track AS Track, tr.car_class AS Class, p.username AS Driver, tr.best_time AS BestTimeMs, tr.best_lap AS BestLapMs, tr.set_at AS SetAt FROM track_records tr JOIN players p ON p.id=tr.player_id WHERE tr.track REGEXP '${track:regex}' AND tr.track_type REGEXP '${track_type:regex}' ORDER BY tr.best_time ASC LIMIT 100",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "BestTimeMs",
+            "desc": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "Best Lap Trend",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 59,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT $__timeGroup(rr.created_at,'1d') AS time, MIN(NULLIF(rr.best_lap,0)) AS BestLapMs, AVG(NULLIF(rr.best_lap,0)) AS AverageLapMs FROM race_results rr JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' AND rr.dnf=0 GROUP BY time ORDER BY time",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 37,
+      "type": "row",
+      "title": "PLAYER DETAILS · career, race history and leaderboard",
+      "gridPos": {
+        "x": 0,
+        "y": 68,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 24,
+      "type": "table",
+      "title": "Selected Driver · Career Summary",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 69,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT p.username AS Driver, COUNT(rr.id) AS Races, SUM(rr.dnf=0 AND rr.position=1) AS Wins, SUM(rr.dnf=0 AND rr.position<=3) AS Podiums, ROUND(AVG(CASE WHEN rr.dnf=0 THEN rr.position END),2) AS AvgFinish, SUM(rr.dnf=1) AS DNFs, COALESCE(i.Incidents,0) AS Crashes, ROUND(100*SUM(rr.dnf=0 AND rr.position<=3)/NULLIF(COUNT(rr.id),0),1) AS PodiumRatePct FROM players p JOIN race_results rr ON rr.player_id=p.id LEFT JOIN (SELECT player_id,COUNT(*) AS Incidents FROM race_incidents GROUP BY player_id) i ON i.player_id=p.id WHERE 1=1 AND rr.player_id REGEXP '${player:regex}' AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' GROUP BY p.id,p.username,i.Incidents ORDER BY Races DESC LIMIT 50",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "description": "Select one player in the Player filter for a single-driver summary."
+    },
+    {
+      "id": 25,
+      "type": "table",
+      "title": "Player Results · race by race",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 69,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT rr.created_at AS Time,p.username AS Driver,rs.track AS Track,rs.track_type AS Type,rr.position AS Position,rr.dnf AS DNF,rr.dnf_reason AS DNFReason,ROUND(rr.finish_time/1000,2) AS FinishSeconds,ROUND(rr.best_lap/1000,2) AS BestLapSeconds,rr.personal_best AS PersonalBest,rr.sr_change AS SRChange,rr.irating_change AS IRatingChange FROM race_results rr JOIN players p ON p.id=rr.player_id JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rr.player_id REGEXP '${player:regex}' AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' ORDER BY rr.created_at DESC LIMIT 200",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "description": "Detailed result history for the selected player and dashboard filters."
+    },
+    {
+      "id": 26,
+      "type": "timeseries",
+      "title": "Player Pace · best lap by race",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 77,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT rr.created_at AS time,ROUND(rr.best_lap/1000,2) AS BestLapSeconds,ROUND(rr.finish_time/1000,2) AS FinishSeconds FROM race_results rr JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rr.dnf=0 AND rr.best_lap>0 AND rr.player_id REGEXP '${player:regex}' AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' ORDER BY time",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Compare best-lap pace and total race time for the selected driver."
+    },
+    {
+      "id": 27,
+      "type": "timeseries",
+      "title": "Player Crash Trend",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 77,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT ri.created_at AS time,COUNT(*) AS Impacts,ROUND(AVG(ri.speed_kmh),1) AS AvgImpactKmh,MAX(ri.speed_drop_kmh) AS MaxSpeedDropKmh FROM race_incidents ri JOIN race_sessions rs ON rs.race_id=ri.race_id WHERE $__timeFilter(ri.created_at) AND ri.player_id REGEXP '${player:regex}' AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' GROUP BY time ORDER BY time",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Hard impacts detected by SPZ; only data recorded after migration 019 is available."
+    },
+    {
+      "id": 22,
+      "type": "table",
+      "title": "Most Podiums",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 85,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT p.username AS Driver, COUNT(*) AS Podiums, SUM(rr.position=1) AS Wins, ROUND(AVG(rr.position),2) AS AvgPosition FROM race_results rr JOIN players p ON p.id=rr.player_id JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rr.dnf=0 AND rr.position<=3 AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' GROUP BY rr.player_id,p.username ORDER BY Podiums DESC,Wins DESC LIMIT 25",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Podiums",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 32,
+      "type": "table",
+      "title": "Player Leaderboard · wins, podiums and clean races",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 85,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT p.username AS Driver,COUNT(rr.id) AS Races,SUM(rr.dnf=0 AND rr.position=1) AS Wins,SUM(rr.dnf=0 AND rr.position<=3) AS Podiums,ROUND(AVG(CASE WHEN rr.dnf=0 THEN rr.position END),2) AS AvgPosition,SUM(rr.dnf=1) AS DNFs,ROUND(100*SUM(rr.dnf=0 AND rr.position<=3)/NULLIF(COUNT(rr.id),0),1) AS PodiumRatePct FROM players p JOIN race_results rr ON rr.player_id=p.id JOIN race_sessions rs ON rs.race_id=rr.race_id WHERE $__timeFilter(rr.created_at) AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' GROUP BY p.id,p.username,i.Crashes ORDER BY Wins DESC,Podiums DESC,Races DESC LIMIT 100",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 38,
+      "type": "row",
+      "title": "CRASH INVESTIGATION · GTA V crash map and density heatmap",
+      "gridPos": {
+        "x": 0,
+        "y": 94,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 29,
+      "type": "geomap",
+      "title": "Crash Locations · GTA V map",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 95,
+        "w": 12,
+        "h": 18
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT ri.created_at AS time, p.username AS Player, rs.track AS Track, ri.race_id AS RaceId, ri.speed_kmh AS ImpactKmh, ri.speed_drop_kmh AS SpeedDropKmh, ri.x AS GameX, ri.y AS GameY, ri.z AS GameZ, CASE WHEN ri.y < -1000 THEN 6.23122700084464e-14*POW(ri.y,4) + 4.20129073856139e-10*POW(ri.y,3) + 2.33168021020044e-6*POW(ri.y,2) + 0.0240131069198339*ri.y + 14.1346597090657 WHEN ri.y < 2000 THEN -5.48114969721267e-14*POW(ri.y,4) - 1.7644651413213e-10*POW(ri.y,3) - 6.69398961485353e-7*POW(ri.y,2) + 0.019446455419011*ri.y + 11.948776738614 WHEN ri.y < 5000 THEN -7.50970630545523e-15*POW(ri.y,4) + 2.42587620752267e-10*POW(ri.y,3) - 3.39800162545523e-6*POW(ri.y,2) + 0.02514652658967*ri.y + 7.49474095495398 ELSE -2.33545837309061e-14*POW(ri.y,4) + 6.7194107532233e-10*POW(ri.y,3) - 7.73181068541832e-6*POW(ri.y,2) + 0.0443322941450463*ri.y - 23.9182574396233 END AS latitude, CASE WHEN ri.y < -1000 THEN -3.03663255576895e-9*ri.x*ri.x + 0.0200175350440883*ri.x - 97.211789757094 WHEN ri.y < 2000 THEN 2.04927570146569e-8*ri.x*ri.x + 0.0199382651698616*ri.x - 97.2328189248356 WHEN ri.y < 5000 THEN 1.14491978248603e-8*ri.x*ri.x + 0.0199665146367798*ri.x - 97.2865999889282 ELSE -4.51344244634536e-8*ri.x*ri.x + 0.0200135106227036*ri.x - 97.1355799536373 END AS longitude FROM race_incidents ri JOIN players p ON p.id=ri.player_id JOIN race_sessions rs ON rs.race_id=ri.race_id WHERE $__timeFilter(ri.created_at) AND ri.player_id REGEXP '${player:regex}' AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' ORDER BY ri.created_at DESC LIMIT 1000",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "view": {
+          "id": "coords",
+          "lat": 11.9,
+          "lon": -97.2,
+          "zoom": 5
+        },
+        "basemap": {
+          "type": "xyz",
+          "name": "GTA V Map",
+          "config": {
+            "url": "https://s.rsg.sc/sc/images/games/GTAV/map/game/{z}/{x}/{y}.jpg",
+            "attribution": "Map tiles © Rockstar Games",
+            "maxZoom": 8
+          }
+        },
+        "controls": {
+          "showZoom": true,
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showScale": false,
+          "showMeasure": false,
+          "showDebug": false
+        },
+        "layers": [
+          {
+            "type": "markers",
+            "name": "Race crashes",
+            "tooltip": true,
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "fixed": "red"
+                },
+                "opacity": 0.9,
+                "size": {
+                  "fixed": 9
+                },
+                "symbol": {
+                  "fixed": "circle"
+                },
+                "text": {
+                  "field": "Player"
+                },
+                "textConfig": {
+                  "fontSize": 11,
+                  "offsetY": -10
+                }
+              }
+            },
+            "location": {
+              "mode": "coords",
+              "latitude": "latitude",
+              "longitude": "longitude"
+            }
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        }
+      },
+      "description": "Each marker is a verified hard-impact event. Hover markers for player, track, speed and coordinates."
+    },
+    {
+      "id": 40,
+      "type": "geomap",
+      "title": "Crash Density · GTA V heatmap",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 95,
+        "w": 12,
+        "h": 18
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT ri.created_at AS time, p.username AS Player, rs.track AS Track, ri.race_id AS RaceId, ri.speed_kmh AS ImpactKmh, ri.speed_drop_kmh AS SpeedDropKmh, ri.x AS GameX, ri.y AS GameY, ri.z AS GameZ, CASE WHEN ri.y < -1000 THEN 6.23122700084464e-14*POW(ri.y,4) + 4.20129073856139e-10*POW(ri.y,3) + 2.33168021020044e-6*POW(ri.y,2) + 0.0240131069198339*ri.y + 14.1346597090657 WHEN ri.y < 2000 THEN -5.48114969721267e-14*POW(ri.y,4) - 1.7644651413213e-10*POW(ri.y,3) - 6.69398961485353e-7*POW(ri.y,2) + 0.019446455419011*ri.y + 11.948776738614 WHEN ri.y < 5000 THEN -7.50970630545523e-15*POW(ri.y,4) + 2.42587620752267e-10*POW(ri.y,3) - 3.39800162545523e-6*POW(ri.y,2) + 0.02514652658967*ri.y + 7.49474095495398 ELSE -2.33545837309061e-14*POW(ri.y,4) + 6.7194107532233e-10*POW(ri.y,3) - 7.73181068541832e-6*POW(ri.y,2) + 0.0443322941450463*ri.y - 23.9182574396233 END AS latitude, CASE WHEN ri.y < -1000 THEN -3.03663255576895e-9*ri.x*ri.x + 0.0200175350440883*ri.x - 97.211789757094 WHEN ri.y < 2000 THEN 2.04927570146569e-8*ri.x*ri.x + 0.0199382651698616*ri.x - 97.2328189248356 WHEN ri.y < 5000 THEN 1.14491978248603e-8*ri.x*ri.x + 0.0199665146367798*ri.x - 97.2865999889282 ELSE -4.51344244634536e-8*ri.x*ri.x + 0.0200135106227036*ri.x - 97.1355799536373 END AS longitude FROM race_incidents ri JOIN players p ON p.id=ri.player_id JOIN race_sessions rs ON rs.race_id=ri.race_id WHERE $__timeFilter(ri.created_at) AND ri.player_id REGEXP '${player:regex}' AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' ORDER BY ri.created_at DESC LIMIT 1000",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "view": {
+          "allLayers": true,
+          "id": "coords",
+          "lat": 11.9,
+          "lon": -97.2,
+          "zoom": 5
+        },
+        "basemap": {
+          "type": "xyz",
+          "name": "GTA V Map",
+          "config": {
+            "url": "https://s.rsg.sc/sc/images/games/GTAV/map/game/{z}/{x}/{y}.jpg",
+            "attribution": "Map tiles © Rockstar Games",
+            "maxZoom": 8
+          }
+        },
+        "controls": {
+          "showZoom": true,
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showScale": false,
+          "showMeasure": false,
+          "showDebug": false
+        },
+        "layers": [
+          {
+            "type": "heatmap",
+            "name": "Crash density",
+            "tooltip": true,
+            "opacity": 0.85,
+            "filterData": {
+              "id": "byRefId",
+              "options": "A"
+            },
+            "location": {
+              "mode": "coords",
+              "latitude": "latitude",
+              "longitude": "longitude"
+            },
+            "config": {
+              "weight": {
+                "fixed": 1,
+                "min": 0,
+                "max": 1
+              },
+              "radius": 16,
+              "blur": 18
+            }
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        }
+      },
+      "description": "High-density areas are highlighted from recorded crash incidents. Available after migration 019 and updated race resource deployment."
+    },
+    {
+      "id": 30,
+      "type": "table",
+      "title": "Crash Details · time, severity and exact game coordinates",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 113,
+        "w": 24,
+        "h": 10
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT ri.created_at AS Time,p.username AS Driver,rs.track AS Track,ri.race_id AS RaceId,ROUND(ri.elapsed_ms/1000,1) AS RaceSeconds,ri.speed_kmh AS ImpactKmh,ri.speed_drop_kmh AS SpeedDropKmh,ROUND(ri.x,1) AS GameX,ROUND(ri.y,1) AS GameY,ROUND(ri.z,1) AS GameZ FROM race_incidents ri JOIN players p ON p.id=ri.player_id JOIN race_sessions rs ON rs.race_id=ri.race_id WHERE $__timeFilter(ri.created_at) AND ri.player_id REGEXP '${player:regex}' AND rs.track REGEXP '${track:regex}' AND rs.car_class REGEXP '${class:regex}' AND rs.track_type REGEXP '${track_type:regex}' ORDER BY ri.created_at DESC LIMIT 500",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "description": "Crash locations and impact speeds are collected from races run after migration 019 and the matching race-resource update."
+    },
+    {
+      "id": 39,
+      "type": "row",
+      "title": "POLL ANALYTICS · votes, rerolls and outcomes",
+      "gridPos": {
+        "x": 0,
+        "y": 123,
+        "w": 24,
+        "h": 1
+      },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Poll Vote Counts",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 124,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT $__timeGroup(pr.ended_at,'1d') AS time, CONCAT(po.phase, ': ', po.option_key) AS metric, SUM(po.vote_count) AS votes FROM race_poll_runs pr JOIN race_poll_options po ON po.poll_id=pr.poll_id AND po.attempt=pr.attempt WHERE $__timeFilter(pr.ended_at) GROUP BY time, metric ORDER BY time",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 16,
+      "type": "table",
+      "title": "Recent Poll Outcomes",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 124,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT ended_at AS Time, race_type AS Type, eligible_count AS Eligible, voter_count AS Voters, track_winner AS Track, vehicle_winner AS Vehicle, traffic_winner AS Traffic, cop_chase AS Cops, rerolled AS Rerolled FROM race_poll_runs WHERE $__timeFilter(ended_at) AND rerolled=0 ORDER BY ended_at DESC LIMIT 100",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Poll Reroll Rate",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 132,
+        "w": 8,
+        "h": 5
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT 100*SUM(rerolled=1)/NULLIF(COUNT(*),0) AS value FROM race_poll_runs WHERE $__timeFilter(ended_at)",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Average Ballot Participation",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 132,
+        "w": 8,
+        "h": 5
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT 100*AVG(voter_count/NULLIF(eligible_count,0)) AS value FROM race_poll_runs WHERE $__timeFilter(ended_at) AND rerolled=0",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Cop Chase Votes",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 132,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT $__timeGroup(ended_at,'1d') AS time, SUM(cop_chase_yes) AS YesVotes, SUM(cop_chase_no) AS NoVotes FROM race_poll_runs WHERE $__timeFilter(ended_at) AND rerolled=0 GROUP BY time ORDER BY time",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    }
   ]
 }
