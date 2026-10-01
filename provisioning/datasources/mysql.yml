@@ -1,0 +1,17 @@
+apiVersion: 1
+datasources:
+  - name: SPZ MySQL
+    uid: spz-mysql
+    type: mysql
+    access: proxy
+    url: ${SPZ_DB_HOST}
+    database: ${SPZ_DB_NAME}
+    user: ${SPZ_DB_USER}
+    isDefault: true
+    editable: false
+    secureJsonData:
+      password: ${SPZ_DB_PASSWORD}
+    jsonData:
+      maxOpenConns: 10
+      maxIdleConns: 5
+      connMaxLifetime: 14400

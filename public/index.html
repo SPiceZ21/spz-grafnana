@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SPZ Track Map Explorer</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b0d12;--panel:#141821;--line:#272e3a;--muted:#9aa4b2;--orange:#ff6b26;--text:#eef2f7}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,Segoe UI,sans-serif}
+    header{height:74px;display:flex;align-items:center;gap:16px;padding:0 22px;border-bottom:1px solid var(--line);background:#10131a}
+    .brand{font-weight:800;letter-spacing:.1em;color:var(--orange)}.title{font-size:17px;font-weight:700}.sub{color:var(--muted);font-size:12px;margin-top:3px}
+    main{display:grid;grid-template-columns:310px 1fr;height:calc(100vh - 74px)}aside{padding:18px;border-right:1px solid var(--line);overflow:auto;background:#10131a}
+    label{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin:12px 0 7px}
+    input,select{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:7px;padding:10px}
+    .stats{display:flex;gap:9px;margin:16px 0}.stat{flex:1;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:8px}.stat b{display:block;font-size:20px}.stat small{color:var(--muted)}
+    #list{margin-top:12px;display:grid;gap:5px}.item{text-align:left;background:transparent;border:1px solid transparent;color:var(--text);padding:9px;border-radius:6px;cursor:pointer}.item:hover,.item.active{background:#1c222d;border-color:#333d4d}.item small{display:block;color:var(--muted);margin-top:3px}
+    section{position:relative;min-width:0}canvas{width:100%;height:100%;display:block;cursor:grab}canvas:active{cursor:grabbing}.hud{position:absolute;top:16px;left:16px;background:#111722dd;border:1px solid var(--line);border-radius:8px;padding:12px 14px;pointer-events:none}.hud b{font-size:15px}.hud span{color:var(--muted);font-size:12px;display:block;margin-top:4px}.legend{position:absolute;right:16px;bottom:16px;padding:11px 13px;background:#111722dd;border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:12px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 5px 0 10px;background:var(--orange)}.dot:first-child{margin-left:0;background:#f5f7fa}
+    @media(max-width:760px){main{grid-template-columns:1fr;height:auto;min-height:calc(100vh - 74px)}aside{border:0;border-bottom:1px solid var(--line)}section{height:60vh}}
+  </style>
+</head>
+<body>
+  <header><div class="brand">SPZ</div><div><div class="title">Track Map Explorer</div><div class="sub">Race routes from the in-game track library</div></div></header>
+  <main><aside>
+    <div class="stats"><div class="stat"><b id="trackCount">—</b><small>Tracks</small></div><div class="stat"><b id="pointCount">—</b><small>Checkpoints</small></div></div>
+    <label for="kind">Track type</label><select id="kind"><option value="all">All routes</option><option value="circuit">Circuits</option><option value="sprint">Sprints</option></select>
+    <label for="search">Find track</label><input id="search" placeholder="Search by track name…">
+    <label for="track">Selected route</label><select id="track"></select><div id="list"></div>
+  </aside><section><canvas id="map"></canvas><div class="hud"><b id="routeName">All SPZ routes</b><span id="routeInfo">Select a route to inspect its checkpoint path</span></div><div class="legend"><i class="dot"></i>Start <i class="dot"></i>Finish / checkpoint path</div></section></main>
+  <script>
+    const canvas=document.querySelector('#map'),ctx=canvas.getContext('2d'),select=document.querySelector('#track'),kind=document.querySelector('#kind'),search=document.querySelector('#search');
+    let tracks=[],selected=null,view={scale:1,x:0,y:0},drag=null;
+    const colors={circuit:'#ff6b26',sprint:'#42c8ff'};
+    fetch('tracks.json').then(r=>r.json()).then(data=>{tracks=data.tracks;document.querySelector('#trackCount').textContent=tracks.length;document.querySelector('#pointCount').textContent=tracks.reduce((n,t)=>n+t.points.length,0).toLocaleString();renderList();draw();}).catch(()=>{document.querySelector('#routeInfo').textContent='Could not load tracks.json — run tools/export_tracks.py';});
+    function filtered(){return tracks.filter(t=>(kind.value==='all'||t.type===kind.value)&&t.name.toLowerCase().includes(search.value.toLowerCase()));}
+    function renderList(){const rows=filtered();select.innerHTML='<option value="">All routes overview</option>'+rows.map(t=>`<option value="${t.id}">${t.name} · ${t.type}</option>`).join('');if(selected&&!rows.some(t=>t.id===selected.id))selected=null;document.querySelector('#list').innerHTML=rows.slice(0,60).map(t=>`<button class="item ${selected?.id===t.id?'active':''}" data-id="${t.id}">${t.name}<small>${t.type} · ${t.points.length} checkpoints · ${t.laps} lap${t.laps===1?'':'s'}</small></button>`).join('');document.querySelectorAll('.item').forEach(b=>b.onclick=()=>choose(b.dataset.id));}
+    function choose(id){selected=tracks.find(t=>t.id===id)||null;select.value=selected?.id||'';document.querySelector('#routeName').textContent=selected?.name||'All SPZ routes';document.querySelector('#routeInfo').textContent=selected?`${selected.type.toUpperCase()} · ${selected.points.length} checkpoints · ${selected.laps} lap${selected.laps===1?'':'s'}`:'Select a route to inspect its checkpoint path';renderList();fit();draw();}
+    function fit(){const w=canvas.clientWidth,h=canvas.clientHeight,pts=selected?.points||tracks.flatMap(t=>t.points);if(!pts.length)return;const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),spanX=maxX-minX||1,spanY=maxY-minY||1;view.scale=Math.min((w-100)/spanX,(h-100)/spanY);view.x=(w-(minX+maxX)*view.scale)/2;view.y=(h+(minY+maxY)*view.scale)/2;}
+    function draw(){const dpr=devicePixelRatio||1,w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#0b0d12';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#171d27';ctx.lineWidth=1;for(let x=0;x<w;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}for(let y=0;y<h;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+      ctx.save();ctx.translate(view.x,view.y);ctx.scale(view.scale,-view.scale);const visible=selected?[selected]:tracks.filter(t=>kind.value==='all'||t.type===kind.value);for(const t of visible){const p=t.points;if(p.length<2)continue;ctx.beginPath();ctx.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length;i++)ctx.lineTo(p[i][0],p[i][1]);if(t.type==='circuit')ctx.closePath();ctx.strokeStyle=colors[t.type]||'#bbb';ctx.globalAlpha=selected?1:.23;ctx.lineWidth=(selected?3:1.2)/view.scale;ctx.stroke();if(selected){ctx.globalAlpha=1;ctx.fillStyle='#f5f7fa';ctx.beginPath();ctx.arc(p[0][0],p[0][1],5/view.scale,0,Math.PI*2);ctx.fill();ctx.fillStyle=colors[t.type]||'#ff6b26';const e=p[p.length-1];ctx.beginPath();ctx.arc(e[0],e[1],4/view.scale,0,Math.PI*2);ctx.fill()}}ctx.restore();}
+    function resize(){canvas.width=0;fit();draw()}select.onchange=()=>choose(select.value);kind.onchange=()=>{renderList();if(!selected)fit();draw()};search.oninput=renderList;window.onresize=resize;
+    canvas.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,ox:view.x,oy:view.y};canvas.setPointerCapture(e.pointerId)};canvas.onpointermove=e=>{if(!drag)return;view.x=drag.ox+e.clientX-drag.x;view.y=drag.oy+e.clientY-drag.y;draw()};canvas.onpointerup=()=>drag=null;canvas.onwheel=e=>{e.preventDefault();const factor=e.deltaY<0?1.12:.89;view.scale*=factor;view.x=e.offsetX-(e.offsetX-view.x)*factor;view.y=e.offsetY-(e.offsetY-view.y)*factor;draw()};
+  </script>
+</body>
+</html>

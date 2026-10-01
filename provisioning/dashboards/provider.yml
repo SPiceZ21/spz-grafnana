@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: SPZ
+    orgId: 1
+    folder: SPZ
+    type: file
+    disableDeletion: true
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
