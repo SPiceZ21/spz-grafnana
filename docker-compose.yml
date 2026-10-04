@@ -15,48 +15,9 @@ services:
       SPZ_DB_NAME: ${SPZ_DB_NAME:?Set SPZ_DB_NAME in .env}
       SPZ_DB_USER: ${SPZ_DB_USER:?Set SPZ_DB_USER in .env}
       SPZ_DB_PASSWORD: ${SPZ_DB_PASSWORD:?Set SPZ_DB_PASSWORD in .env}
-      GF_DATABASE_HEALTH_HOST: ${GF_DATABASE_HEALTH_HOST:?Set the external health database host in .env}
-      GF_DATABASE_HEALTH_NAME: ${GF_DATABASE_HEALTH_NAME:?Set the external health database name in .env}
-      GF_DATABASE_HEALTH_USER: ${GF_DATABASE_HEALTH_USER:?Set a read-only health database user in .env}
-      GF_DATABASE_HEALTH_PASSWORD: ${GF_DATABASE_HEALTH_PASSWORD:?Set the read-only health database password in .env}
-      FIVEM_HOST: ${FIVEM_HOST:?Set FIVEM_HOST in .env}
-      FIVEM_PORT: ${FIVEM_PORT:-30120}
-      HEALTH_POLL_SECONDS: ${HEALTH_POLL_SECONDS:-30}
     volumes:
       - grafana-data:/var/lib/grafana
       - ./provisioning:/etc/grafana/provisioning:ro
-      - ./provisioning/dashboards:/home/container/data/dashboards:ro
-    depends_on:
-      - track-map
-      - server-monitor
-
-  server-monitor:
-    build:
-      context: ./tools
-      dockerfile: Dockerfile
-    image: spz-server-monitor:local
-    container_name: spz-server-monitor
-    restart: unless-stopped
-    init: true
-    command: ["node", "/app/server-monitor.mjs"]
-    environment:
-      FIVEM_HOST: ${FIVEM_HOST:?Set FIVEM_HOST in .env}
-      FIVEM_PORT: ${FIVEM_PORT:-30120}
-      HEALTH_DB_HOST: ${HEALTH_DB_HOST:?Set the external health database host in .env}
-      HEALTH_DB_PORT: ${HEALTH_DB_PORT:-3306}
-      HEALTH_DB_NAME: ${HEALTH_DB_NAME:?Set the external health database name in .env}
-      HEALTH_DB_USER: ${HEALTH_DB_USER:?Set the health writer account in .env}
-      HEALTH_DB_PASSWORD: ${HEALTH_DB_PASSWORD:?Set the health writer password in .env}
-      HEALTH_POLL_SECONDS: ${HEALTH_POLL_SECONDS:-30}
-  track-map:
-    image: nginx:1.27-alpine
-    container_name: spz-track-map
-    restart: unless-stopped
-    ports:
-      - "${TRACK_MAP_PORT:-8090}:80"
-    volumes:
-      - ./public:/usr/share/nginx/html:ro
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
 
 volumes:
   grafana-data:

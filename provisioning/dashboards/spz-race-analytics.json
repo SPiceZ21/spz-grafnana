@@ -1,7 +1,7 @@
 {
   "id": null,
   "uid": "spz-race-analytics",
-  "title": "SPZ Race Analytics",
+  "title": "SPZ Server & Race Analytics",
   "tags": [
     "spz",
     "racing",
@@ -9,7 +9,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 5,
+  "version": 6,
   "refresh": "1m",
   "time": {
     "from": "now-30d",
@@ -96,119 +96,17 @@
   },
   "panels": [
     {
-      "id": 33,
       "type": "row",
-      "title": "OVERVIEW · server race activity and headline metrics",
+      "title": "OVERVIEW · race activity and headline metrics",
+      "collapsed": false,
+      "panels": [],
       "gridPos": {
         "x": 0,
         "y": 0,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 41,
-      "type": "row",
-      "title": "FIVEM SERVER HEALTH · reachability, uptime and outages",
-      "gridPos": { "x": 0, "y": 138, "w": 24, "h": 1 },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "id": 42,
-      "type": "stat",
-      "title": "FiveM Endpoint · current status",
-      "description": "Most recent TCP reachability check for the configured FiveM server endpoint.",
-      "datasource": { "type": "mysql", "uid": "spz-health" },
-      "gridPos": { "x": 0, "y": 139, "w": 5, "h": 4 },
-      "targets": [{ "rawSql": "SELECT checked_at AS time, is_up AS value FROM server_health_checks ORDER BY checked_at DESC LIMIT 1", "format": "time_series", "refId": "A" }],
-      "fieldConfig": { "defaults": { "unit": "short", "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }], "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }, "overrides": [] },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "value", "colorMode": "background", "graphMode": "area", "justifyMode": "center" }
-    },
-    {
-      "id": 43,
-      "type": "stat",
-      "title": "Availability · last 24h",
-      "description": "Share of 30-second probes that reached the configured TCP endpoint during the past 24 hours.",
-      "datasource": { "type": "mysql", "uid": "spz-health" },
-      "gridPos": { "x": 5, "y": 139, "w": 5, "h": 4 },
-      "targets": [{ "rawSql": "SELECT 100.0 * AVG(is_up) AS value FROM server_health_checks WHERE checked_at >= UTC_TIMESTAMP() - INTERVAL 24 HOUR", "format": "table", "refId": "A" }],
-      "fieldConfig": { "defaults": { "unit": "percent", "decimals": 2, "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "orange", "value": 95 }, { "color": "green", "value": 99 }] } }, "overrides": [] },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "center" }
-    },
-    {
-      "id": 44,
-      "type": "stat",
-      "title": "Downtime · last 24h",
-      "description": "Estimated unreachable time based on consecutive failed probes. A single failed interval is approximately the configured poll interval.",
-      "datasource": { "type": "mysql", "uid": "spz-health" },
-      "gridPos": { "x": 10, "y": 139, "w": 5, "h": 4 },
-      "targets": [{ "rawSql": "SELECT COALESCE(SUM(CASE WHEN is_up=0 THEN LEAST(interval_seconds, GREATEST(0, TIMESTAMPDIFF(SECOND, checked_at, COALESCE(LEAD(checked_at) OVER (ORDER BY checked_at), UTC_TIMESTAMP(3))))) ELSE 0 END), 0) AS value FROM server_health_checks WHERE checked_at >= UTC_TIMESTAMP() - INTERVAL 24 HOUR", "format": "table", "refId": "A" }],
-      "fieldConfig": { "defaults": { "unit": "s", "decimals": 0 }, "overrides": [] },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "center" }
-    },
-    {
-      "id": 45,
-      "type": "stat",
-      "title": "Latest Response Time",
-      "description": "TCP connect latency of the most recent successful health probe.",
-      "datasource": { "type": "mysql", "uid": "spz-health" },
-      "gridPos": { "x": 15, "y": 139, "w": 5, "h": 4 },
-      "targets": [{ "rawSql": "SELECT checked_at AS time, latency_ms AS value FROM server_health_checks WHERE is_up=1 ORDER BY checked_at DESC LIMIT 1", "format": "time_series", "refId": "A" }],
-      "fieldConfig": { "defaults": { "unit": "ms", "decimals": 0 }, "overrides": [] },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "auto", "colorMode": "value", "graphMode": "area", "justifyMode": "center" }
-    },
-    {
-      "id": 48,
-      "type": "stat",
-      "title": "Players Online",
-      "description": "Player count most recently reported by FiveM's /dynamic.json endpoint. The trend below also shows server capacity when published.",
-      "datasource": { "type": "mysql", "uid": "spz-health" },
-      "gridPos": { "x": 20, "y": 139, "w": 4, "h": 4 },
-      "targets": [{ "rawSql": "SELECT checked_at AS time, players_online AS value FROM server_health_checks WHERE is_up=1 ORDER BY checked_at DESC LIMIT 1", "format": "time_series", "refId": "A" }],
-      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0, "color": { "mode": "palette-classic" } }, "overrides": [] },
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "orientation": "auto", "textMode": "value", "colorMode": "value", "graphMode": "area", "justifyMode": "center" }
-    },
-    {
-      "id": 46,
-      "type": "timeseries",
-      "title": "Reachability & Response Time",
-      "description": "Availability steps and successful TCP probe latency over time. TCP reachability does not assert that a player can complete a FiveM handshake.",
-      "datasource": { "type": "mysql", "uid": "spz-health" },
-      "gridPos": { "x": 0, "y": 143, "w": 12, "h": 8 },
-      "targets": [
-        { "rawSql": "SELECT checked_at AS time, is_up AS value FROM server_health_checks WHERE $__timeFilter(checked_at) ORDER BY checked_at", "format": "time_series", "refId": "A", "alias": "reachable (1=up, 0=down)" },
-        { "rawSql": "SELECT checked_at AS time, latency_ms AS value FROM server_health_checks WHERE $__timeFilter(checked_at) AND is_up=1 ORDER BY checked_at", "format": "time_series", "refId": "B", "alias": "TCP latency (ms)" }
-      ],
-      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "lineWidth": 2, "fillOpacity": 15, "showPoints": "never", "spanNulls": false } }, "overrides": [{ "matcher": { "id": "byName", "options": "TCP latency (ms)" }, "properties": [{ "id": "unit", "value": "ms" }, { "id": "custom.axisPlacement", "value": "right" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] }] },
-      "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["mean", "max"] } }
-    },
-    {
-      "id": 47,
-      "type": "table",
-      "title": "Recent Outages & Failed Checks",
-      "description": "Latest failed TCP health checks, including probe time and connection error.",
-      "datasource": { "type": "mysql", "uid": "spz-health" },
-      "gridPos": { "x": 0, "y": 151, "w": 24, "h": 8 },
-      "targets": [{ "rawSql": "SELECT checked_at AS 'Checked at (UTC)', error_text AS 'Failure reason' FROM server_health_checks WHERE $__timeFilter(checked_at) AND is_up=0 ORDER BY checked_at DESC LIMIT 100", "format": "table", "refId": "A" }],
-      "fieldConfig": { "defaults": { "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": false } }, "overrides": [] },
-      "options": { "showHeader": true, "cellHeight": "sm", "footer": { "show": false } }
-    },
-    {
-      "id": 49,
-      "type": "timeseries",
-      "title": "Players Online vs Capacity",
-      "description": "Player count and published capacity from the FiveM /dynamic.json endpoint.",
-      "datasource": { "type": "mysql", "uid": "spz-health" },
-      "gridPos": { "x": 12, "y": 143, "w": 12, "h": 8 },
-      "targets": [
-        { "rawSql": "SELECT checked_at AS time, players_online AS value FROM server_health_checks WHERE $__timeFilter(checked_at) AND is_up=1 ORDER BY checked_at", "format": "time_series", "refId": "A", "alias": "players online" },
-        { "rawSql": "SELECT checked_at AS time, max_players AS value FROM server_health_checks WHERE $__timeFilter(checked_at) AND is_up=1 ORDER BY checked_at", "format": "time_series", "refId": "B", "alias": "server capacity" }
-      ],
-      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0, "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 12, "showPoints": "never", "spanNulls": false } }, "overrides": [] },
-      "options": { "tooltip": { "mode": "multi", "sort": "desc" }, "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["lastNotNull", "max"] } }
+      "id": 101
     },
     {
       "id": 1,
@@ -377,17 +275,1071 @@
       }
     },
     {
-      "id": 34,
       "type": "row",
-      "title": "RACE ACTIVITY · participation, tracks, classes and recent results",
+      "title": "SERVER · players online, load, entities and lifecycle (server_snapshots, server_events)",
+      "collapsed": false,
+      "panels": [],
       "gridPos": {
         "x": 0,
         "y": 5,
         "w": 24,
         "h": 1
       },
+      "id": 102
+    },
+    {
+      "type": "stat",
+      "title": "Players Online",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT players_online AS value FROM server_snapshots ORDER BY taken_at DESC LIMIT 1",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 4,
+        "h": 4
+      },
+      "id": 103
+    },
+    {
+      "type": "stat",
+      "title": "Peak Players",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT MAX(players_online) AS value FROM server_snapshots WHERE $__timeFilter(taken_at)",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 6,
+        "w": 4,
+        "h": 4
+      },
+      "id": 104
+    },
+    {
+      "type": "stat",
+      "title": "Uptime",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT TIMESTAMPDIFF(SECOND, MAX(created_at), NOW()) AS value FROM server_events WHERE event='server_start'",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 6,
+        "w": 4,
+        "h": 4
+      },
+      "id": 105
+    },
+    {
+      "type": "stat",
+      "title": "Server Starts",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT COUNT(*) AS value FROM server_events WHERE event='server_start' AND $__timeFilter(created_at)",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 4,
+        "h": 4
+      },
+      "id": 106
+    },
+    {
+      "type": "stat",
+      "title": "Server Frame Time",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT frame_ms AS value FROM server_snapshots ORDER BY taken_at DESC LIMIT 1",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 6,
+        "w": 4,
+        "h": 4
+      },
+      "id": 107
+    },
+    {
+      "type": "stat",
+      "title": "Avg Ping",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT avg_ping AS value FROM server_snapshots ORDER BY taken_at DESC LIMIT 1",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 6,
+        "w": 4,
+        "h": 4
+      },
+      "id": 108
+    },
+    {
+      "type": "timeseries",
+      "title": "Players by Activity",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT taken_at AS time, in_race AS Race, in_queue AS Queue, in_timetrial AS `Time trial`, in_minigame AS Minigame, in_replay AS Replay, spectating AS Spectating, freeroam AS Freeroam FROM server_snapshots WHERE $__timeFilter(taken_at) ORDER BY taken_at",
+          "format": "time_series",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 12,
+        "h": 8
+      },
+      "id": 109
+    },
+    {
+      "type": "timeseries",
+      "title": "Server Frame Time & Ping",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT taken_at AS time, frame_ms AS `Frame ms`, avg_ping AS `Avg ping` FROM server_snapshots WHERE $__timeFilter(taken_at) ORDER BY taken_at",
+          "format": "time_series",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 10,
+        "w": 12,
+        "h": 8
+      },
+      "id": 110
+    },
+    {
+      "type": "timeseries",
+      "title": "Entities (leak watch)",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT taken_at AS time, vehicles AS Vehicles, peds AS Peds, objects AS Objects FROM server_snapshots WHERE $__timeFilter(taken_at) ORDER BY taken_at",
+          "format": "time_series",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 12,
+        "h": 8
+      },
+      "id": 111
+    },
+    {
+      "type": "table",
+      "title": "Server & Resource Events",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT created_at AS Time, event AS Event, detail AS Detail, SEC_TO_TIME(uptime_s) AS Uptime, players AS Players FROM server_events WHERE $__timeFilter(created_at) ORDER BY created_at DESC LIMIT 200",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 18,
+        "w": 12,
+        "h": 8
+      },
+      "id": 112
+    },
+    {
+      "type": "row",
+      "title": "PLAYERS · activity, sessions and connections (player_sessions, player_activity, daily_player_stats, connection_attempts)",
       "collapsed": false,
-      "panels": []
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 24,
+        "h": 1
+      },
+      "id": 113
+    },
+    {
+      "type": "stat",
+      "title": "Active Today",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT COUNT(DISTINCT player_id) AS value FROM daily_player_stats WHERE day = CURDATE()",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 27,
+        "w": 4,
+        "h": 4
+      },
+      "id": 114
+    },
+    {
+      "type": "stat",
+      "title": "Active Players",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT COUNT(DISTINCT player_id) AS value FROM daily_player_stats WHERE $__timeFilter(day)",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 27,
+        "w": 4,
+        "h": 4
+      },
+      "id": 115
+    },
+    {
+      "type": "stat",
+      "title": "New Players",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT COUNT(*) AS value FROM player_sessions WHERE first_session=1 AND $__timeFilter(started_at)",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 27,
+        "w": 4,
+        "h": 4
+      },
+      "id": 116
+    },
+    {
+      "type": "stat",
+      "title": "Avg Session",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT AVG(duration_s) AS value FROM player_sessions WHERE $__timeFilter(started_at)",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 27,
+        "w": 4,
+        "h": 4
+      },
+      "id": 117
+    },
+    {
+      "type": "stat",
+      "title": "Playtime",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT SUM(playtime_s) AS value FROM daily_player_stats WHERE $__timeFilter(day)",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 27,
+        "w": 4,
+        "h": 4
+      },
+      "id": 118
+    },
+    {
+      "type": "stat",
+      "title": "Avg Load Time",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT AVG(load_ms) AS value FROM connection_attempts WHERE outcome='joined' AND $__timeFilter(created_at)",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 27,
+        "w": 4,
+        "h": 4
+      },
+      "id": 119
+    },
+    {
+      "type": "timeseries",
+      "title": "Daily Active Players",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT TIMESTAMP(day) AS time, COUNT(DISTINCT player_id) AS Players, SUM(sessions) AS Sessions FROM daily_player_stats WHERE $__timeFilter(day) GROUP BY day ORDER BY day",
+          "format": "time_series",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 45,
+            "lineWidth": 1,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 31,
+        "w": 12,
+        "h": 8
+      },
+      "id": 120
+    },
+    {
+      "type": "piechart",
+      "title": "Playtime by Mode",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT mode AS Mode, ROUND(SUM(duration_s)/3600,1) AS Hours FROM player_activity WHERE $__timeFilter(started_at) GROUP BY mode ORDER BY Hours DESC",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "pieType": "donut",
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value",
+            "percent"
+          ]
+        }
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 31,
+        "w": 12,
+        "h": 8
+      },
+      "id": 121
+    },
+    {
+      "type": "barchart",
+      "title": "Sessions by Hour of Day",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT LPAD(HOUR(started_at),2,'0') AS Hour, COUNT(*) AS Sessions FROM player_sessions WHERE $__timeFilter(started_at) GROUP BY Hour ORDER BY Hour",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "vertical",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 39,
+        "w": 12,
+        "h": 8
+      },
+      "id": 122
+    },
+    {
+      "type": "barchart",
+      "title": "Disconnect Reasons",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT COALESCE(NULLIF(disconnect_reason,''),'Unknown') AS Reason, COUNT(*) AS Sessions FROM player_sessions WHERE $__timeFilter(started_at) GROUP BY Reason ORDER BY Sessions DESC LIMIT 12",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false
+        }
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 39,
+        "w": 12,
+        "h": 8
+      },
+      "id": 123
+    },
+    {
+      "type": "timeseries",
+      "title": "Connections per Day",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT TIMESTAMP(DATE(created_at)) AS time, SUM(outcome='joined') AS Joined, SUM(outcome='rejected') AS Rejected, SUM(outcome='abandoned') AS Abandoned FROM connection_attempts WHERE $__timeFilter(created_at) GROUP BY DATE(created_at) ORDER BY time",
+          "format": "time_series",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 45,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 47,
+        "w": 12,
+        "h": 8
+      },
+      "id": 124
+    },
+    {
+      "type": "table",
+      "title": "Connection Rejections",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT outcome AS Outcome, COALESCE(reason,'-') AS Reason, COUNT(*) AS Count, ROUND(AVG(wait_ms)/1000,1) AS AvgWaitSec FROM connection_attempts WHERE outcome<>'joined' AND $__timeFilter(created_at) GROUP BY outcome, reason ORDER BY Count DESC LIMIT 50",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 47,
+        "w": 12,
+        "h": 8
+      },
+      "id": 125
+    },
+    {
+      "type": "table",
+      "title": "Most Active Players",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT p.username AS Player, ROUND(SUM(d.playtime_s)/3600,1) AS Hours, SUM(d.sessions) AS Sessions, SUM(d.races) AS Races, SUM(d.wins) AS Wins, SUM(d.podiums) AS Podiums, ROUND(SUM(d.distance_m)/1000,1) AS Km FROM daily_player_stats d JOIN players p ON p.id=d.player_id WHERE $__timeFilter(d.day) GROUP BY d.player_id ORDER BY Hours DESC LIMIT 50",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 55,
+        "w": 24,
+        "h": 8
+      },
+      "id": 126
+    },
+    {
+      "type": "row",
+      "title": "RACE ACTIVITY · participation, tracks, classes and recent results",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 63,
+        "w": 24,
+        "h": 1
+      },
+      "id": 127
     },
     {
       "id": 5,
@@ -399,7 +1351,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 6,
+        "y": 64,
         "w": 12,
         "h": 8
       },
@@ -441,7 +1393,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 6,
+        "y": 64,
         "w": 12,
         "h": 8
       },
@@ -479,7 +1431,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 14,
+        "y": 72,
         "w": 12,
         "h": 8
       },
@@ -521,7 +1473,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 14,
+        "y": 72,
         "w": 12,
         "h": 8
       },
@@ -561,7 +1513,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 22,
+        "y": 80,
         "w": 8,
         "h": 8
       },
@@ -606,7 +1558,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 22,
+        "y": 80,
         "w": 8,
         "h": 8
       },
@@ -641,7 +1593,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 22,
+        "y": 80,
         "w": 8,
         "h": 8
       },
@@ -676,7 +1628,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 30,
+        "y": 88,
         "w": 12,
         "h": 9
       },
@@ -710,7 +1662,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 30,
+        "y": 88,
         "w": 12,
         "h": 9
       },
@@ -735,127 +1687,188 @@
       }
     },
     {
-      "id": 35,
       "type": "row",
-      "title": "TRACK VISUALIZATION · GTA V route layouts",
+      "title": "RACE FUNNEL & ENGINE · where players drop out and when the race system breaks (race_queue_events, race_engine_events)",
+      "collapsed": false,
+      "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 39,
+        "y": 97,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
-      "panels": []
+      "id": 128
     },
     {
-      "id": 14,
-      "type": "geomap",
-      "title": "SPZ Track Routes · GTA V map",
-      "gridPos": {
-        "x": 0,
-        "y": 40,
-        "w": 24,
-        "h": 18
-      },
-      "options": {
-        "view": {
-          "allLayers": true,
-          "id": "fit",
-          "lat": 11.9,
-          "lon": -97.2,
-          "zoom": 3
-        },
-        "basemap": {
-          "type": "xyz",
-          "name": "GTA V map",
-          "config": {
-            "url": "https://s.rsg.sc/sc/images/games/GTAV/map/game/{z}/{x}/{y}.jpg",
-            "attribution": "Map tiles © Rockstar Games",
-            "maxZoom": 8
-          }
-        },
-        "controls": {
-          "showZoom": true,
-          "mouseWheelZoom": true,
-          "showAttribution": true,
-          "showScale": false,
-          "showMeasure": false,
-          "showDebug": false
-        },
-        "layers": [
-          {
-            "type": "geojson",
-            "name": "SPZ circuit & sprint routes",
-            "tooltip": true,
-            "opacity": 0.92,
-            "config": {
-              "src": "http://localhost:8090/tracks.geojson",
-              "rules": [],
-              "style": {
-                "color": {
-                  "fixed": "#ff712e"
-                },
-                "opacity": 0.9,
-                "rotation": {
-                  "fixed": 0,
-                  "max": 360,
-                  "min": -360,
-                  "mode": "mod"
-                },
-                "size": {
-                  "fixed": 2,
-                  "max": 8,
-                  "min": 1
-                },
-                "symbol": {
-                  "fixed": "img/icons/marker/circle.svg",
-                  "mode": "fixed"
-                },
-                "symbolAlign": {
-                  "horizontal": "center",
-                  "vertical": "center"
-                },
-                "textConfig": {
-                  "fontSize": 11,
-                  "offsetX": 0,
-                  "offsetY": 0,
-                  "textAlign": "center",
-                  "textBaseline": "middle"
-                }
-              }
-            }
-          }
-        ],
-        "tooltip": {
-          "mode": "details"
-        }
-      },
-      "description": "Circuit and sprint layouts over Rockstar GTA V map tiles. Use the route explorer link for per-track search and selection.",
+      "type": "barchart",
+      "title": "Race Funnel",
       "datasource": {
         "type": "mysql",
         "uid": "spz-mysql"
       },
-      "targets": [],
-      "links": [
+      "targets": [
         {
-          "title": "Open interactive track explorer",
-          "url": "http://localhost:8090/",
-          "targetBlank": true
+          "rawSql": "SELECT event AS Step, COUNT(*) AS Players FROM race_queue_events WHERE $__timeFilter(created_at) GROUP BY event ORDER BY FIELD(event,'queue_join','queue_leave','race_start','finish','dnf')",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
         }
-      ]
-    },
-    {
-      "id": 36,
-      "type": "row",
-      "title": "TRACK RECORDS & PACE",
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false
+        }
+      },
       "gridPos": {
         "x": 0,
-        "y": 58,
+        "y": 98,
+        "w": 8,
+        "h": 8
+      },
+      "id": 129
+    },
+    {
+      "type": "timeseries",
+      "title": "Engine Failures per Day",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT TIMESTAMP(DATE(created_at)) AS time, SUM(event='spawn_fail') AS `Spawn fail`, SUM(event='race_abort') AS `Race abort`, SUM(event LIKE 'poll_no_%') AS `Poll failed` FROM race_engine_events WHERE event<>'state' AND $__timeFilter(created_at) GROUP BY DATE(created_at) ORDER BY time",
+          "format": "time_series",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 45,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 98,
+        "w": 16,
+        "h": 8
+      },
+      "id": 130
+    },
+    {
+      "type": "table",
+      "title": "Average Time per Race Phase",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT prev AS Phase, COUNT(*) AS Times, ROUND(AVG(duration_ms)/1000,1) AS AvgSec, ROUND(MAX(duration_ms)/1000,1) AS MaxSec FROM (SELECT LAG(detail) OVER (ORDER BY id) AS prev, duration_ms FROM race_engine_events WHERE event='state' AND $__timeFilter(created_at)) t WHERE prev IS NOT NULL GROUP BY prev ORDER BY AvgSec DESC",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 106,
+        "w": 12,
+        "h": 8
+      },
+      "id": 131
+    },
+    {
+      "type": "table",
+      "title": "Recent Engine Failures",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT e.created_at AS Time, e.event AS Event, e.detail AS Detail, e.race_id AS Race, p.username AS Player, e.players AS Queued FROM race_engine_events e LEFT JOIN players p ON p.id=e.player_id WHERE e.event<>'state' AND $__timeFilter(e.created_at) ORDER BY e.created_at DESC LIMIT 100",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 106,
+        "w": 12,
+        "h": 8
+      },
+      "id": 132
+    },
+    {
+      "type": "row",
+      "title": "TRACK RECORDS & PACE",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 114,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
-      "panels": []
+      "id": 133
     },
     {
       "id": 8,
@@ -867,7 +1880,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 59,
+        "y": 115,
         "w": 12,
         "h": 9
       },
@@ -907,7 +1920,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 59,
+        "y": 115,
         "w": 12,
         "h": 8
       },
@@ -939,17 +1952,260 @@
       }
     },
     {
-      "id": 37,
-      "type": "row",
-      "title": "PLAYER DETAILS · career, race history and leaderboard",
+      "type": "table",
+      "title": "Lap Pace per Track",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT track AS Track, COUNT(*) AS Laps, ROUND(MIN(lap_ms)/1000,3) AS BestSec, ROUND(AVG(lap_ms)/1000,2) AS AvgSec, ROUND(STDDEV(lap_ms)/1000,2) AS SpreadSec, ROUND(AVG(top_kmh)) AS AvgTopKmh, MAX(top_kmh) AS TopKmh FROM race_laps WHERE $__timeFilter(created_at) AND track REGEXP '${track:regex}' GROUP BY track ORDER BY Laps DESC",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
       "gridPos": {
         "x": 0,
-        "y": 68,
+        "y": 124,
+        "w": 24,
+        "h": 8
+      },
+      "id": 134
+    },
+    {
+      "type": "row",
+      "title": "CARS & PERFORMANCE · car balance, rentals, ping and FPS during races (race_entries, vehicle_usage)",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 132,
         "w": 24,
         "h": 1
       },
+      "id": 135
+    },
+    {
+      "type": "table",
+      "title": "Car Win Rate",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT model AS Car, car_class AS Class, COUNT(*) AS Entries, SUM(position=1) AS Wins, ROUND(100*SUM(position=1)/COUNT(*),1) AS WinPct, ROUND(AVG(position),1) AS AvgPos, ROUND(100*SUM(dnf)/COUNT(*),1) AS DnfPct FROM race_entries WHERE model IS NOT NULL AND $__timeFilter(created_at) AND track REGEXP '${track:regex}' GROUP BY model, car_class HAVING Entries >= 3 ORDER BY WinPct DESC LIMIT 50",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 133,
+        "w": 16,
+        "h": 9
+      },
+      "id": 136
+    },
+    {
+      "type": "piechart",
+      "title": "Rental vs Owned",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT IF(rental=1,'Rental','Owned') AS Car, COUNT(*) AS Entries FROM race_entries WHERE rental IS NOT NULL AND $__timeFilter(created_at) AND track REGEXP '${track:regex}' GROUP BY rental",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "pieType": "donut",
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value",
+            "percent"
+          ]
+        }
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 133,
+        "w": 8,
+        "h": 9
+      },
+      "id": 137
+    },
+    {
+      "type": "table",
+      "title": "Performance per Track",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT track AS Track, COUNT(*) AS Entries, ROUND(AVG(avg_fps)) AS AvgFps, MIN(min_fps) AS WorstFps, ROUND(AVG(avg_ping)) AS AvgPing, MAX(max_ping) AS WorstPing, ROUND(100*SUM(dnf)/COUNT(*),1) AS DnfPct FROM race_entries WHERE $__timeFilter(created_at) AND track REGEXP '${track:regex}' GROUP BY track ORDER BY AvgFps ASC",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 142,
+        "w": 12,
+        "h": 8
+      },
+      "id": 138
+    },
+    {
+      "type": "barchart",
+      "title": "DNF Rate by Ping",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT CASE WHEN avg_ping < 50 THEN '0-49 ms' WHEN avg_ping < 100 THEN '50-99 ms' WHEN avg_ping < 150 THEN '100-149 ms' ELSE '150+ ms' END AS Ping, ROUND(100*SUM(dnf)/COUNT(*),1) AS DnfPct FROM race_entries WHERE avg_ping IS NOT NULL AND $__timeFilter(created_at) GROUP BY Ping ORDER BY MIN(avg_ping)",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false
+        }
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 142,
+        "w": 6,
+        "h": 8
+      },
+      "id": 139
+    },
+    {
+      "type": "barchart",
+      "title": "Most Driven Cars",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT model AS Car, ROUND(SUM(seconds)/3600,1) AS Hours FROM vehicle_usage WHERE $__timeFilter(started_at) GROUP BY model ORDER BY Hours DESC LIMIT 15",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false
+        }
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 142,
+        "w": 6,
+        "h": 8
+      },
+      "id": 140
+    },
+    {
+      "type": "row",
+      "title": "PLAYER DETAILS · career, race history and leaderboard",
       "collapsed": false,
-      "panels": []
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 150,
+        "w": 24,
+        "h": 1
+      },
+      "id": 141
     },
     {
       "id": 24,
@@ -961,7 +2217,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 69,
+        "y": 151,
         "w": 12,
         "h": 8
       },
@@ -993,7 +2249,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 69,
+        "y": 151,
         "w": 12,
         "h": 8
       },
@@ -1025,7 +2281,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 77,
+        "y": 159,
         "w": 12,
         "h": 8
       },
@@ -1065,7 +2321,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 77,
+        "y": 159,
         "w": 12,
         "h": 8
       },
@@ -1105,7 +2361,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 85,
+        "y": 167,
         "w": 12,
         "h": 8
       },
@@ -1145,7 +2401,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 85,
+        "y": 167,
         "w": 12,
         "h": 8
       },
@@ -1167,17 +2423,98 @@
       }
     },
     {
-      "id": 38,
-      "type": "row",
-      "title": "CRASH INVESTIGATION · GTA V crash map and density heatmap",
+      "type": "timeseries",
+      "title": "iRating History",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT h.created_at AS time, p.username AS metric, h.irating AS value FROM player_rating_history h JOIN players p ON p.id=h.player_id WHERE $__timeFilter(h.created_at) AND h.player_id REGEXP '${player:regex}' ORDER BY h.created_at",
+          "format": "time_series",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
       "gridPos": {
         "x": 0,
-        "y": 94,
+        "y": 175,
+        "w": 12,
+        "h": 8
+      },
+      "id": 142
+    },
+    {
+      "type": "table",
+      "title": "Promotions & Demotions",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT h.created_at AS Time, p.username AS Player, h.rank_before AS FromRank, h.rank_title AS ToRank, h.license_before AS FromLicense, h.license_tier AS ToLicense, h.irating AS iRating, h.sr AS SR FROM player_rating_history h JOIN players p ON p.id=h.player_id WHERE (h.rank_title<>h.rank_before OR h.license_tier<>h.license_before) AND $__timeFilter(h.created_at) AND h.player_id REGEXP '${player:regex}' ORDER BY h.created_at DESC LIMIT 100",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 175,
+        "w": 12,
+        "h": 8
+      },
+      "id": 143
+    },
+    {
+      "type": "row",
+      "title": "CRASH INVESTIGATION · GTA V crash map and density heatmap",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 183,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
-      "panels": []
+      "id": 144
     },
     {
       "id": 29,
@@ -1189,7 +2526,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 95,
+        "y": 184,
         "w": 12,
         "h": 18
       },
@@ -1280,7 +2617,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 95,
+        "y": 184,
         "w": 12,
         "h": 18
       },
@@ -1364,7 +2701,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 113,
+        "y": 202,
         "w": 24,
         "h": 10
       },
@@ -1387,17 +2724,17 @@
       "description": "Crash locations and impact speeds are collected from races run after migration 019 and the matching race-resource update."
     },
     {
-      "id": 39,
       "type": "row",
       "title": "POLL ANALYTICS · votes, rerolls and outcomes",
+      "collapsed": false,
+      "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 123,
+        "y": 212,
         "w": 24,
         "h": 1
       },
-      "collapsed": false,
-      "panels": []
+      "id": 145
     },
     {
       "id": 11,
@@ -1409,7 +2746,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 124,
+        "y": 213,
         "w": 12,
         "h": 8
       },
@@ -1450,7 +2787,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 124,
+        "y": 213,
         "w": 12,
         "h": 8
       },
@@ -1484,7 +2821,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 132,
+        "y": 221,
         "w": 8,
         "h": 5
       },
@@ -1525,7 +2862,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 132,
+        "y": 221,
         "w": 8,
         "h": 5
       },
@@ -1566,7 +2903,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 132,
+        "y": 221,
         "w": 8,
         "h": 8
       },
@@ -1599,6 +2936,272 @@
           "mode": "multi"
         }
       }
+    },
+    {
+      "type": "row",
+      "title": "ECONOMY · credit balances over time (daily_credit_balances)",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 229,
+        "w": 24,
+        "h": 1
+      },
+      "id": 146
+    },
+    {
+      "type": "timeseries",
+      "title": "Credits in Circulation",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT TIMESTAMP(day) AS time, SUM(credits) AS Total, ROUND(AVG(credits)) AS Average FROM daily_credit_balances WHERE $__timeFilter(day) GROUP BY day ORDER BY day",
+          "format": "time_series",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 230,
+        "w": 12,
+        "h": 8
+      },
+      "id": 147
+    },
+    {
+      "type": "table",
+      "title": "Richest Players (latest day)",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT p.username AS Player, b.credits AS Credits FROM daily_credit_balances b JOIN players p ON p.id=b.player_id WHERE b.day=(SELECT MAX(day) FROM daily_credit_balances) ORDER BY b.credits DESC LIMIT 25",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 230,
+        "w": 12,
+        "h": 8
+      },
+      "id": 148
+    },
+    {
+      "type": "row",
+      "title": "ADMIN & FEATURES · audit log and feature usage (admin_actions, feature_usage)",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 238,
+        "w": 24,
+        "h": 1
+      },
+      "id": 149
+    },
+    {
+      "type": "table",
+      "title": "Admin Actions",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT created_at AS Time, admin_name AS Admin, action AS Action, detail AS Detail FROM admin_actions WHERE $__timeFilter(created_at) ORDER BY created_at DESC LIMIT 200",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 239,
+        "w": 16,
+        "h": 10
+      },
+      "id": 150
+    },
+    {
+      "type": "barchart",
+      "title": "Admin Actions by Type",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT action AS Action, COUNT(*) AS Times FROM admin_actions WHERE $__timeFilter(created_at) GROUP BY action ORDER BY Times DESC LIMIT 15",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false
+        }
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 239,
+        "w": 8,
+        "h": 10
+      },
+      "id": 151
+    },
+    {
+      "type": "timeseries",
+      "title": "Feature Usage per Day",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT TIMESTAMP(day) AS time, feature AS metric, uses AS value FROM feature_usage WHERE $__timeFilter(day) ORDER BY day",
+          "format": "time_series",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 45,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 249,
+        "w": 16,
+        "h": 8
+      },
+      "id": 152
+    },
+    {
+      "type": "barchart",
+      "title": "Feature Usage (total)",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT feature AS Feature, SUM(uses) AS Uses FROM feature_usage WHERE $__timeFilter(day) GROUP BY feature ORDER BY Uses DESC",
+          "format": "table",
+          "refId": "A",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false
+        }
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 249,
+        "w": 8,
+        "h": 8
+      },
+      "id": 153
     }
   ]
 }

@@ -3,6 +3,3 @@
 .gitignore
 README.md
 data
-node_modules
-tools/node_modules
-tools/package-lock.json

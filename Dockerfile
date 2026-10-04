@@ -1,30 +1,15 @@
+# Grafana only: the official image plus this repo's provisioning (one MySQL
+# data source, one dashboard). No extra services, nothing else baked in.
 ARG GRAFANA_BASE_IMAGE=grafana/grafana:11.6.0
 FROM ${GRAFANA_BASE_IMAGE}
 
 USER root
-RUN apk add --no-cache bash nodejs npm
+# Pterodactyl runs containers as uid 988 in /home/container.
+RUN adduser -D -u 988 -h /home/container container     && mkdir -p /home/container/data     && chown -R container:container /home/container
+COPY --chown=container:container provisioning /etc/grafana/provisioning
+COPY --chown=container:container start.sh pterodactyl-entrypoint.sh /opt/spz-grafana/
 
-RUN adduser -D -u 988 -h /home/container container \
-    && mkdir -p /home/container /opt/spz-grafana \
-    && chown -R container:container /home/container
-
-WORKDIR /opt/spz-grafana
-COPY tools/package.json ./package.json
-RUN npm install --omit=dev --no-audit --no-fund
-COPY tools/server-monitor.mjs tools/track-map-server.mjs tools/prepare-dashboard.mjs ./tools/
-COPY provisioning ./provisioning
-COPY public ./public
-COPY start.sh pterodactyl-entrypoint.sh ./
-
-ENV GF_PATHS_HOME=/usr/share/grafana \
-    GF_PATHS_CONFIG=/etc/grafana/grafana.ini \
-    GF_PATHS_DATA=/home/container/data \
-    GF_PATHS_PLUGINS=/home/container/data/plugins \
-    GF_PATHS_PROVISIONING=/opt/spz-grafana/provisioning \
-    GF_SERVER_HTTP_ADDR=0.0.0.0 \
-    TRACK_MAP_ENABLED=true \
-    USER=container \
-    HOME=/home/container
+ENV GF_PATHS_DATA=/home/container/data     GF_PATHS_PLUGINS=/home/container/data/plugins     GF_PATHS_PROVISIONING=/etc/grafana/provisioning     GF_SERVER_HTTP_ADDR=0.0.0.0     GF_USERS_ALLOW_SIGN_UP=false     USER=container     HOME=/home/container
 
 USER container
 WORKDIR /home/container

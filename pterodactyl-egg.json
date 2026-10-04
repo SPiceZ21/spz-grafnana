@@ -1,10 +1,13 @@
 {
   "_comment": "Import into Pterodactyl as a single-server Grafana analytics Egg. Replace the placeholder Docker image before creating a server.",
-  "meta": { "version": "PTDL_v2", "update_url": null },
+  "meta": {
+    "version": "PTDL_v2",
+    "update_url": null
+  },
   "exported_at": "2026-10-01T00:00:00+00:00",
   "name": "SPZ Grafana Analytics",
   "author": "SPZ",
-  "description": "Single-container Grafana, FiveM health monitor, and optional track-map HTTP service.",
+  "description": "Grafana only: the SPZ dashboard over the race database (single MySQL data source).",
   "features": [],
   "docker_images": {
     "SPZ Grafana Pterodactyl": "ghcr.io/your-org/spz-grafana-pterodactyl:latest"
@@ -13,7 +16,9 @@
   "startup": "/opt/spz-grafana/start.sh",
   "config": {
     "files": "{}",
-    "startup": { "done": "HTTP Server Listen" },
+    "startup": {
+      "done": "HTTP Server Listen"
+    },
     "logs": "{}",
     "stop": "^C"
   },
@@ -25,26 +30,65 @@
     }
   },
   "variables": [
-    { "name": "Grafana admin user", "description": "Initial Grafana administrator username.", "env_variable": "GF_SECURITY_ADMIN_USER", "default_value": "admin", "user_viewable": true, "user_editable": true, "rules": "required|string|max:64", "field_type": "text" },
-    { "name": "Grafana admin password", "description": "Use a unique strong password. Grafana stores its own state under /home/container/data.", "env_variable": "GF_SECURITY_ADMIN_PASSWORD", "default_value": "", "user_viewable": false, "user_editable": true, "rules": "required|string|min:12", "field_type": "text" },
-    { "name": "Race MySQL host", "description": "External Race MySQL host and optional port, for example race-db.example.net:3306.", "env_variable": "SPZ_DB_HOST", "default_value": "", "user_viewable": true, "user_editable": true, "rules": "required|string|max:255", "field_type": "text" },
-    { "name": "Race MySQL database", "description": "Existing SPZ race database. Grafana uses this connection read-only.", "env_variable": "SPZ_DB_NAME", "default_value": "", "user_viewable": true, "user_editable": true, "rules": "required|string|max:128", "field_type": "text" },
-    { "name": "Race MySQL reader", "description": "External MySQL account granted SELECT only on the race schema.", "env_variable": "SPZ_DB_USER", "default_value": "", "user_viewable": true, "user_editable": true, "rules": "required|string|max:128", "field_type": "text" },
-    { "name": "Race MySQL reader password", "description": "Password for the read-only Race MySQL account.", "env_variable": "SPZ_DB_PASSWORD", "default_value": "", "user_viewable": false, "user_editable": true, "rules": "required|string", "field_type": "text" },
-    { "name": "FiveM endpoint host", "description": "Public/server-reachable hostname or IP that exposes /dynamic.json.", "env_variable": "FIVEM_HOST", "default_value": "", "user_viewable": true, "user_editable": true, "rules": "required|string|max:255", "field_type": "text" },
-    { "name": "FiveM endpoint port", "description": "FiveM HTTP endpoint port.", "env_variable": "FIVEM_PORT", "default_value": "30120", "user_viewable": true, "user_editable": true, "rules": "required|integer|between:1,65535", "field_type": "text" },
-    { "name": "Health poll interval", "description": "Seconds between health probes (minimum 5 seconds).", "env_variable": "HEALTH_POLL_SECONDS", "default_value": "30", "user_viewable": true, "user_editable": true, "rules": "required|integer|between:5,86400", "field_type": "text" },
-    { "name": "Health DB host", "description": "External Health MySQL host. Leave blank to derive host/port from GF_DATABASE_HEALTH_HOST.", "env_variable": "HEALTH_DB_HOST", "default_value": "", "user_viewable": true, "user_editable": true, "rules": "nullable|string|max:255", "field_type": "text" },
-    { "name": "Health DB port", "description": "External Health MySQL TCP port. Leave blank to use the port in GF_DATABASE_HEALTH_HOST, otherwise 3306.", "env_variable": "HEALTH_DB_PORT", "default_value": "", "user_viewable": true, "user_editable": true, "rules": "nullable|integer|between:1,65535", "field_type": "text" },
-    { "name": "Health DB name", "description": "Pre-created external Health database/schema. The monitor creates only server_health_checks in this database.", "env_variable": "HEALTH_DB_NAME", "default_value": "", "user_viewable": true, "user_editable": true, "rules": "nullable|string|max:128", "field_type": "text" },
-    { "name": "Health monitor writer", "description": "External Health MySQL account for the monitor. Grant CREATE, ALTER, INSERT, and SELECT on the Health schema.", "env_variable": "HEALTH_DB_USER", "default_value": "", "user_viewable": true, "user_editable": true, "rules": "nullable|string|max:128", "field_type": "text" },
-    { "name": "Health monitor writer password", "description": "Password for the Health monitor account.", "env_variable": "HEALTH_DB_PASSWORD", "default_value": "", "user_viewable": false, "user_editable": true, "rules": "nullable|string", "field_type": "text" },
-    { "name": "Grafana Health DB host", "description": "Optional Grafana reader datasource host, with optional :port. Defaults to HEALTH_DB_HOST:HEALTH_DB_PORT.", "env_variable": "GF_DATABASE_HEALTH_HOST", "default_value": "", "user_viewable": true, "user_editable": true, "rules": "nullable|string|max:255", "field_type": "text" },
-    { "name": "Grafana Health DB name", "description": "Optional datasource schema; defaults to HEALTH_DB_NAME.", "env_variable": "GF_DATABASE_HEALTH_NAME", "default_value": "", "user_viewable": true, "user_editable": true, "rules": "nullable|string|max:128", "field_type": "text" },
-    { "name": "Grafana Health DB reader", "description": "Optional external Grafana account; use a separate SELECT-only account where possible. Defaults to HEALTH_DB_USER.", "env_variable": "GF_DATABASE_HEALTH_USER", "default_value": "", "user_viewable": true, "user_editable": true, "rules": "nullable|string|max:128", "field_type": "text" },
-    { "name": "Grafana Health DB reader password", "description": "Optional password for the separate Grafana Health reader; defaults to HEALTH_DB_PASSWORD.", "env_variable": "GF_DATABASE_HEALTH_PASSWORD", "default_value": "", "user_viewable": false, "user_editable": true, "rules": "nullable|string", "field_type": "text" },
-    { "name": "Track map enabled", "description": "Set false to run Grafana and the FiveM monitor without a secondary map allocation.", "env_variable": "TRACK_MAP_ENABLED", "default_value": "true", "user_viewable": true, "user_editable": true, "rules": "required|in:true,false", "field_type": "text" },
-    { "name": "Track map port", "description": "Optional secondary Pterodactyl TCP allocation. Set the allocation to this exact port when the track map is enabled.", "env_variable": "TRACK_MAP_PORT", "default_value": "8090", "user_viewable": true, "user_editable": true, "rules": "required|integer|between:1,65535", "field_type": "text" },
-    { "name": "Track map public URL", "description": "Public HTTP(S) origin including its secondary port, such as http://node.example.net:8090. Used in the dashboard GeoJSON and explorer links; set it to your public address when the map is enabled.", "env_variable": "TRACK_MAP_PUBLIC_URL", "default_value": "http://127.0.0.1:8090", "user_viewable": true, "user_editable": true, "rules": "required|string|max:512", "field_type": "text" }
+    {
+      "name": "Grafana admin user",
+      "description": "Initial Grafana administrator username.",
+      "env_variable": "GF_SECURITY_ADMIN_USER",
+      "default_value": "admin",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|max:64",
+      "field_type": "text"
+    },
+    {
+      "name": "Grafana admin password",
+      "description": "Use a unique strong password. Grafana stores its own state under /home/container/data.",
+      "env_variable": "GF_SECURITY_ADMIN_PASSWORD",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": true,
+      "rules": "required|string|min:12",
+      "field_type": "text"
+    },
+    {
+      "name": "Race MySQL host",
+      "description": "External Race MySQL host and optional port, for example race-db.example.net:3306.",
+      "env_variable": "SPZ_DB_HOST",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|max:255",
+      "field_type": "text"
+    },
+    {
+      "name": "Race MySQL database",
+      "description": "Existing SPZ race database. Grafana uses this connection read-only.",
+      "env_variable": "SPZ_DB_NAME",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|max:128",
+      "field_type": "text"
+    },
+    {
+      "name": "Race MySQL reader",
+      "description": "External MySQL account granted SELECT only on the race schema.",
+      "env_variable": "SPZ_DB_USER",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|max:128",
+      "field_type": "text"
+    },
+    {
+      "name": "Race MySQL reader password",
+      "description": "Password for the read-only Race MySQL account.",
+      "env_variable": "SPZ_DB_PASSWORD",
+      "default_value": "",
+      "user_viewable": false,
+      "user_editable": true,
+      "rules": "required|string",
+      "field_type": "text"
+    }
   ]
 }
