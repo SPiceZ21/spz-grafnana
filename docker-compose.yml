@@ -11,13 +11,14 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_SERVER_HTTP_ADDR: 0.0.0.0
       GF_SERVER_HTTP_PORT: 3000
+      GF_PATHS_PROVISIONING: /usr/share/grafana/conf/provisioning
       SPZ_DB_HOST: ${SPZ_DB_HOST:?Set SPZ_DB_HOST in .env}
       SPZ_DB_NAME: ${SPZ_DB_NAME:?Set SPZ_DB_NAME in .env}
       SPZ_DB_USER: ${SPZ_DB_USER:?Set SPZ_DB_USER in .env}
       SPZ_DB_PASSWORD: ${SPZ_DB_PASSWORD:?Set SPZ_DB_PASSWORD in .env}
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./provisioning:/etc/grafana/provisioning:ro
+      - ./provisioning:/usr/share/grafana/conf/provisioning:ro
 
 volumes:
   grafana-data:

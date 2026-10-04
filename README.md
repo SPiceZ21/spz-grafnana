@@ -53,12 +53,17 @@ docker compose up -d
 
 Grafana is on port 3000. The dashboard is in the **SPZ** folder.
 
-## Run on Pterodactyl
+## Run on Pterodactyl (generic Grafana egg)
 
-1. Build and push the image: `docker build -t ghcr.io/YOU/spz-grafana:1.1.0 . && docker push ghcr.io/YOU/spz-grafana:1.1.0`
-2. Import `pterodactyl-egg.json`, set its Docker image to your tag.
-3. Create one server with one allocation (Grafana's port), fill the six variables, start.
+1. Create the server with any standard Grafana egg and start it once, so it
+   installs Grafana (you get `bin/` and `conf/` in the server's files).
+2. Upload this repo's `provisioning/` into `conf/`, merging with what is
+   there: `conf/provisioning/datasources/mysql.yml` and
+   `conf/provisioning/dashboards/` (both files).
+3. In `conf/provisioning/datasources/mysql.yml` replace `${SPZ_DB_HOST}`,
+   `${SPZ_DB_NAME}`, `${SPZ_DB_USER}` and `${SPZ_DB_PASSWORD}` with the real
+   values (a generic egg has no variables for them).
+4. Restart. The dashboard is in the **SPZ** folder.
 
-Grafana's own data (users, preferences) lives in `/home/container/data` on the
-server's disk. The dashboard and data source are re-provisioned from the image
-on every start, so edit `provisioning/` and rebuild to change them.
+To change the dashboard later, upload the new
+`conf/provisioning/dashboards/spz-race-analytics.json` and restart.
