@@ -2938,13 +2938,93 @@
       }
     },
     {
+      "id": 154,
+      "type": "timeseries",
+      "title": "Reroll Card Votes",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 229,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT $__timeGroup(ended_at,'1d') AS time, SUM(track_reroll_votes) AS `Track reroll`, SUM(vehicle_reroll_votes) AS `Car reroll`, SUM(rerolled=1) AS `Sets redrawn` FROM race_poll_runs WHERE $__timeFilter(ended_at) GROUP BY time ORDER BY time",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Players who picked the \"none of these\" card on the track and car ballots, per day."
+    },
+    {
+      "id": 155,
+      "type": "table",
+      "title": "Rejected Sets",
+      "datasource": {
+        "type": "mysql",
+        "uid": "spz-mysql"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 229,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT pr.ended_at AS Time, pr.race_type AS Type, pr.reroll_phase AS Rerolled, pr.track_reroll_votes AS `Track reroll votes`, pr.vehicle_reroll_votes AS `Car reroll votes`, GROUP_CONCAT(CASE WHEN po.option_key<>'reroll' AND (pr.reroll_phase=po.phase OR pr.reroll_phase='both') THEN po.option_key END ORDER BY po.phase SEPARATOR ', ') AS `Rejected options` FROM race_poll_runs pr LEFT JOIN race_poll_options po ON po.poll_id=pr.poll_id AND po.attempt=pr.attempt WHERE pr.rerolled=1 AND $__timeFilter(pr.ended_at) GROUP BY pr.id ORDER BY pr.ended_at DESC LIMIT 100",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "description": "Poll attempts thrown out by the reroll card, with the tracks or cars that were rejected."
+    },
+    {
       "type": "row",
       "title": "ECONOMY · credit balances over time (daily_credit_balances)",
       "collapsed": false,
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 229,
+        "y": 237,
         "w": 24,
         "h": 1
       },
@@ -2989,7 +3069,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 230,
+        "y": 238,
         "w": 12,
         "h": 8
       },
@@ -3025,7 +3105,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 230,
+        "y": 238,
         "w": 12,
         "h": 8
       },
@@ -3038,7 +3118,7 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 238,
+        "y": 246,
         "w": 24,
         "h": 1
       },
@@ -3074,7 +3154,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 239,
+        "y": 247,
         "w": 16,
         "h": 10
       },
@@ -3111,7 +3191,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 239,
+        "y": 247,
         "w": 8,
         "h": 10
       },
@@ -3160,7 +3240,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 249,
+        "y": 257,
         "w": 16,
         "h": 8
       },
@@ -3197,7 +3277,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 249,
+        "y": 257,
         "w": 8,
         "h": 8
       },
