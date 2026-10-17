@@ -2665,10 +2665,6 @@
             "name": "Crash density",
             "tooltip": true,
             "opacity": 0.85,
-            "filterData": {
-              "id": "byRefId",
-              "options": "A"
-            },
             "location": {
               "mode": "coords",
               "latitude": "latitude",
@@ -2680,8 +2676,8 @@
                 "min": 0,
                 "max": 1
               },
-              "radius": 16,
-              "blur": 18
+              "radius": 24,
+              "blur": 24
             }
           }
         ],
